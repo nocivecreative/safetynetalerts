@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### raw Json source file ###
+data.json
