@@ -11,7 +11,7 @@ Ce projet à été créé dans le cadre de ma formation **Développeur d'applica
 |      Etape     | Nom                                  | Status                    |
 |----------------|--------------------------------------|---------------------------|
 |Étape 1         | Environnement set-up          | OK - *01/12/2025*        |
-|Étape 2         | Json parsing            | todo        |
+|Étape 2         | Json parsing            | OK - *08/12/2025*        |
 |Étape 3.1       | Endpoint 1 : http://localhost:8080/firestation?stationNumber= <station_number> | todo              |
 |Étape 3.2       | Endpoint 2 : http://localhost:8080/childAlert?address= \<adress>           | todo              |
 |Étape 3.3       | Endpoint 3 : http://localhost:8080/phoneAlert?firestation=\<firestation_number> | todo              |
