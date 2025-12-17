@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.openclassrooms.safetynetalerts.dto.ChildAlertDTO;
+import com.openclassrooms.safetynetalerts.dto.FireDTO;
 import com.openclassrooms.safetynetalerts.repository.JsonDataRepo;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 
@@ -24,6 +25,15 @@ public class PersonController {
             @RequestParam("address") String address) {
         logger.info("[CALL] childAlert?address={}", address);
         ChildAlertDTO result = personService.getChildrenLivingAtAdress(address);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/fire")
+    public ResponseEntity<FireDTO> getPersonsByAdress(
+            @RequestParam("address") String address) {
+        logger.info("[CALL] fire?address={}", address);
+        FireDTO result = personService.getPersonAndMedicalHistoryLivingAtAdress(address);
 
         return ResponseEntity.ok(result);
     }
