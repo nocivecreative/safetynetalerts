@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.openclassrooms.safetynetalerts.dto.FirestationCoverageDTO;
 import com.openclassrooms.safetynetalerts.dto.PersonInfoDTO;
+import com.openclassrooms.safetynetalerts.dto.PhoneAlertDTO;
 import com.openclassrooms.safetynetalerts.model.DataFile;
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.model.Person;
@@ -66,4 +67,27 @@ public class FirestationService {
                 return new FirestationCoverageDTO(personInfos, adultCount, childCount);
         }
 
+        public PhoneAlertDTO getPhoneOfPersonsCoveredByStation(String stationNumber) {
+                DataFile data = dataRepo.loadData();
+
+                // Récupérer les adresses couvertes par la caserne
+                List<String> coveredAddresses = data.getFirestations().stream()
+                                .filter(fs -> fs.getStation().equals(stationNumber))
+                                .map(Firestation::getAddress)
+                                .collect(Collectors.toList());
+
+                // Récupérer les personnes à ces adresses
+                List<Person> coveredPersons = data.getPersons().stream()
+                                .filter(person -> coveredAddresses.contains(person.getAddress()))
+                                .collect(Collectors.toList());
+
+                // Mapper vers DTO
+                List<String> phoneList = new java.util.ArrayList<>();
+                for (Person person : coveredPersons) {
+                        String phoneNumber = person.getPhone();
+                        phoneList.add(phoneNumber);
+                }
+
+                return new PhoneAlertDTO(phoneList);
+        }
 }
