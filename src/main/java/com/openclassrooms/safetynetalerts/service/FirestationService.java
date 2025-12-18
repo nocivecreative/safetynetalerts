@@ -1,6 +1,8 @@
 package com.openclassrooms.safetynetalerts.service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -82,7 +84,7 @@ public class FirestationService {
                                 .collect(Collectors.toList());
 
                 // Mapper vers DTO
-                List<String> phoneList = new java.util.ArrayList<>();
+                Set<String> phoneList = new TreeSet<>();
                 for (Person person : coveredPersons) {
                         String phoneNumber = person.getPhone();
                         phoneList.add(phoneNumber);

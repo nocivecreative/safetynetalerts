@@ -1,18 +1,18 @@
 package com.openclassrooms.safetynetalerts.dto;
 
-import java.util.List;
+import java.util.Set;
 
 import lombok.Data;
 
 @Data
 public class PhoneAlertDTO {
 
-    private List<String> phoneNumbersList;
+    private Set<String> phoneNumbersList;
 
     public PhoneAlertDTO() {
     }
 
-    public PhoneAlertDTO(List<String> phoneNumbersList) {
+    public PhoneAlertDTO(Set<String> phoneNumbersList) {
         this.phoneNumbersList = phoneNumbersList;
     }
 }
