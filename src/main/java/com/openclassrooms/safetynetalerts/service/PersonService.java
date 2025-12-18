@@ -43,6 +43,8 @@ public class PersonService {
         public ChildAlertResponseDTO getChildrenLivingAtAdress(String address) {
                 DataFile data = dataRepo.loadData();
 
+                logger.debug("[SERVICE] looking for perons living at address={}", address);
+
                 List<ChildInfoDTO> children = new ArrayList<>();
                 List<HouseholdMemberDTO> householdMembers = new ArrayList<>();
 
@@ -52,14 +54,9 @@ public class PersonService {
                                 .collect(Collectors.toList());
 
                 // Pour chaque personne, récupération du dossier medical en O(N+M)
+                logger.debug("[SERVICE] Starting age computing for sorting children/adults living at address={}",
+                                address);
                 for (Person person : personLivingIn) {
-                        MedicalRecord medicalRecord = data.getMedicalrecords().stream()
-                                        .filter(mr -> mr.getFirstName().equals(person.getFirstName())
-                                                        && mr.getLastName().equals(person.getLastName()))
-                                        .findFirst()
-                                        .orElse(null);
-
-                        System.out.println(medicalRecord);
 
                         int age = Utils.calculateAge(person, data.getMedicalrecords());
                         if (age <= 18) {
@@ -78,6 +75,7 @@ public class PersonService {
 
                 }
 
+                // TODO : inclure dans prez
                 // Récupère les dossiers médicaux des personnes vivant à l'adresse donnée (NON
                 // car complexité O(N*M))
                 /*
@@ -85,16 +83,14 @@ public class PersonService {
                  * .filter(mr -> mr.getFirstName().equals("John"))
                  * .collect(Collectors.toList());
                  */
-                System.out.println(householdMembers);
-                System.out.println(children);
 
-                logger.info("[SUCCESS] getChildrenLivingAtAdress");
                 return new ChildAlertResponseDTO(children);
         }
 
         public FireAddressResponseDTO getPersonAndMedicalHistoryLivingAtAdress(String address) {
                 DataFile data = dataRepo.loadData();
 
+                logger.debug("[SERVICE] looking for perons living at address={}", address);
                 // Récupérer la liste des enfants vivant à cette adresse
                 List<Person> personLivingIn = data.getPersons().stream()
                                 .filter(p -> p.getAddress().equals(address))
@@ -133,7 +129,6 @@ public class PersonService {
 
                         personFireList.add(personFire);
                 }
-                logger.info("[SUCCESS] getPersonAndMedicalHistoryLivingAtAdress");
                 return new FireAddressResponseDTO(personFireList, firestationNumber);
         }
 
@@ -141,6 +136,7 @@ public class PersonService {
                 DataFile data = dataRepo.loadData();
                 List<FloodHouseholdDTO> households = new ArrayList<>();
 
+                logger.debug("[SERVICE] looking for perons covered by stations={}", stations);
                 // Récupére toutes les adresses couvertes par les stations
                 Set<String> firestationAddresses = new HashSet<>();
                 for (int station : stations) {
@@ -151,7 +147,7 @@ public class PersonService {
                                                         .collect(Collectors.toList()));
                 }
 
-                // Pour chaque adresse, créer un floodHouseDTO
+                // Pour chaque adresse, créer une liste des personnes
                 for (String address : firestationAddresses) {
 
                         List<FloodResidentDTO> floodPersonInfoList = new ArrayList<>();
@@ -211,6 +207,7 @@ public class PersonService {
                 DataFile data = dataRepo.loadData();
                 List<PersonMedicalProfileDTO> personInfolastNameDTOs = new ArrayList<>();
 
+                logger.debug("[SERVICE] looking for perons infos and medical history for lastname={}", lastName);
                 // Récupérer toutes les personnes à cette adresse
                 List<Person> personsAtAddress = data.getPersons().stream()
                                 .filter(p -> p.getLastName().equals(lastName))
@@ -257,6 +254,7 @@ public class PersonService {
         public CommunityEmailResponseDTO getEmailsaddressesForCityResidents(String city) {
                 DataFile data = dataRepo.loadData();
 
+                logger.debug("[SERVICE] looking for emails of resident in city={}", city);
                 // Récupérer toutes les personnes à cette adresse
                 Set<String> emailAddresses = new TreeSet<>();
                 List<Person> personsInCity = data.getPersons().stream()

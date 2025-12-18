@@ -22,7 +22,7 @@ public class JsonDataRepo implements DataRepo {
         try {
             ClassPathResource resource = new ClassPathResource("data.json");
             DataFile Jsondata = mapper.readValue(resource.getInputStream(), DataFile.class);
-            logger.info("Json file read and parsed");
+            logger.debug("[REPOSITORY] Json file read and parsed");
             return Jsondata;
         } catch (Exception e) {
             throw new RuntimeException("Impossible de lire data.json", e);

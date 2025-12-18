@@ -31,33 +31,36 @@ public class AlertController {
     @GetMapping("/firestation")
     public ResponseEntity<FirestationCoverageResponseDTO> getPersonsByStation(
             @RequestParam("stationNumber") int stationNumber) {
-        logger.info("[CALL] firestation?stationNumber={}", stationNumber);
+        logger.info("[CALL] GET firestation?stationNumber={}", stationNumber);
         FirestationCoverageResponseDTO result = firestationService.getPersonsCoveredByStation(stationNumber);
+        logger.info("[CALL] GET firestation?stationNumber={} -> SUCCESS", stationNumber);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/phoneAlert")
     public ResponseEntity<PhoneAlertResponseDTO> getPhoneByStation(
             @RequestParam("firestation") int firestation) {
-        logger.info("[CALL] phoneAlert?firestation={}", firestation);
+        logger.info("[CALL] GET phoneAlert?firestation={}", firestation);
         PhoneAlertResponseDTO result = firestationService.getPhoneOfPersonsCoveredByStation(firestation);
+        logger.info("[RESPONSE] GET phoneAlert?firestation={} -> SUCCESS", firestation);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/childAlert")
     public ResponseEntity<ChildAlertResponseDTO> getChildrenByAdress(
             @RequestParam("address") String address) {
-        logger.info("[CALL] childAlert?address={}", address);
+        logger.info("[CALL] GET childAlert?address={}", address);
         ChildAlertResponseDTO result = personService.getChildrenLivingAtAdress(address);
-
+        logger.info("[RESPONSE] GET childAlert?address={} -> SUCCESS", address);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/flood/stations") // TODO : Nécessité de déplacer dans floodController ?
     public ResponseEntity<FloodStationsResponseDTO> getPersonsByStations(
             @RequestParam("stations") List<Integer> stations) {
-        logger.info("[CALL] flood/station?stations={}", stations);
+        logger.info("[CALL] GET flood/station?stations={}", stations);
         FloodStationsResponseDTO result = personService.getPersonAndMedicalHistoryCoveredByStations(stations);
+        logger.info("[RESPONSE] GET flood/station?stations={} -> SUCCESS", stations);
 
         return ResponseEntity.ok(result);
     }
