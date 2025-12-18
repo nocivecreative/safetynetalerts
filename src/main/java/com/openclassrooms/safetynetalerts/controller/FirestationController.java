@@ -30,9 +30,9 @@ public class FirestationController {
 
     @GetMapping("/phoneAlert")
     public ResponseEntity<PhoneAlertDTO> getPhoneByStation(
-            @RequestParam("stationNumber") String stationNumber) {
-        logger.info("[CALL] phoneAlert?stationNumber={}", stationNumber);
-        PhoneAlertDTO result = firestationService.getPhoneOfPersonsCoveredByStation(stationNumber);
+            @RequestParam("firestation") String firestation) {
+        logger.info("[CALL] phoneAlert?firestation={}", firestation);
+        PhoneAlertDTO result = firestationService.getPhoneOfPersonsCoveredByStation(firestation);
         return ResponseEntity.ok(result);
     }
 
