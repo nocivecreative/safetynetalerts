@@ -53,10 +53,10 @@ public class PersonController {
     }
 
     @GetMapping("/personInfolastName")
-    public ResponseEntity<List<PersonInfoResponseDTO>> getPersonsByLastName(
+    public ResponseEntity<PersonInfoResponseDTO> getPersonsByLastName(
             @RequestParam("lastName") String lastName) {
         logger.info("[CALL] personInfolastName?lastName={}", lastName);
-        List<PersonInfoResponseDTO> result = personService.getPersonInfosAndMedicalHistoryByLastName(lastName);
+        PersonInfoResponseDTO result = personService.getPersonInfosAndMedicalHistoryByLastName(lastName);
 
         return ResponseEntity.ok(result);
     }

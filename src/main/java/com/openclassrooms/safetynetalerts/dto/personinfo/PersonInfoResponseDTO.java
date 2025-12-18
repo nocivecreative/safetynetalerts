@@ -1,25 +1,16 @@
 package com.openclassrooms.safetynetalerts.dto.personinfo;
 
-import com.openclassrooms.safetynetalerts.dto.commons.MedicalHistoryDTO;
+import java.util.List;
 
 import lombok.Data;
 
 @Data
-public class PersonInfoResponseDTO {
+public class PersonInfoResponseDTO{
 
-    private String lastname;
-    private String address;
-    private int age;
-    private String email;
-    private MedicalHistoryDTO medicalHistory;
+    private List<PersonMedicalProfileDTO> persons;
 
-    public PersonInfoResponseDTO(String lastname, String address, int age, String email,
-            MedicalHistoryDTO medicalHistory) {
-        this.lastname = lastname;
-        this.address = address;
-        this.age = age;
-        this.email = email;
-        this.medicalHistory = medicalHistory;
+    public PersonInfoResponseDTO(List<PersonMedicalProfileDTO> persons) {
+        this.persons = persons;
     }
 
 }

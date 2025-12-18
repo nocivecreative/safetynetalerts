@@ -23,6 +23,7 @@ import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResponseDTO
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodResidentDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationsResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.personinfo.PersonInfoResponseDTO;
+import com.openclassrooms.safetynetalerts.dto.personinfo.PersonMedicalProfileDTO;
 import com.openclassrooms.safetynetalerts.model.DataFile;
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
@@ -205,9 +206,10 @@ public class PersonService {
                 return floodDTOs;
         }
 
-        public List<PersonInfoResponseDTO> getPersonInfosAndMedicalHistoryByLastName(String lastName) {
+        public PersonInfoResponseDTO getPersonInfosAndMedicalHistoryByLastName(String lastName) {
                 DataFile data = dataRepo.loadData();
-                List<PersonInfoResponseDTO> personInfolastNameDTOs = new ArrayList<>();
+                List<PersonMedicalProfileDTO> personInfolastNameDTOs = new ArrayList<>();
+
                 // Récupérer toutes les personnes à cette adresse
                 List<Person> personsAtAddress = data.getPersons().stream()
                                 .filter(p -> p.getLastName().equals(lastName))
@@ -239,7 +241,7 @@ public class PersonService {
                                         medications,
                                         allergies);
 
-                        PersonInfoResponseDTO personInfolastNameDTO = new PersonInfoResponseDTO(
+                        PersonMedicalProfileDTO personInfolastNameDTO = new PersonMedicalProfileDTO(
                                         person.getLastName(),
                                         person.getAddress(),
                                         age, person.getEmail(),
@@ -248,7 +250,7 @@ public class PersonService {
                         personInfolastNameDTOs.add(personInfolastNameDTO);
                 }
 
-                return personInfolastNameDTOs;
+                return new PersonInfoResponseDTO(personInfolastNameDTOs);
         }
 
         public CommunityEmailResponseDTO getEmailsaddressesForCityResidents(String city) {
