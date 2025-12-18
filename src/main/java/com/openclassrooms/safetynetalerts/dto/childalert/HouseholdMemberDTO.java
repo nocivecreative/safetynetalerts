@@ -1,4 +1,4 @@
-package com.openclassrooms.safetynetalerts.dto;
+package com.openclassrooms.safetynetalerts.dto.childalert;
 
 import lombok.Data;
 

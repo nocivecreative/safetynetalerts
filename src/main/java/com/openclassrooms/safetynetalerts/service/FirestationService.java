@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.openclassrooms.safetynetalerts.dto.FirestationCoverageDTO;
-import com.openclassrooms.safetynetalerts.dto.PersonInfoDTO;
-import com.openclassrooms.safetynetalerts.dto.PhoneAlertDTO;
+import com.openclassrooms.safetynetalerts.dto.firestation.FirestationCoverageResponseDTO;
+import com.openclassrooms.safetynetalerts.dto.firestation.FirestationResidentDTO;
+import com.openclassrooms.safetynetalerts.dto.phonealert.PhoneAlertResponseDTO;
 import com.openclassrooms.safetynetalerts.model.DataFile;
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.model.Person;
@@ -27,7 +27,7 @@ public class FirestationService {
         @Autowired
         private DataRepo dataRepo;
 
-        public FirestationCoverageDTO getPersonsCoveredByStation(String stationNumber) {
+        public FirestationCoverageResponseDTO getPersonsCoveredByStation(String stationNumber) {
                 DataFile data = dataRepo.loadData();
 
                 // Récupérer les adresses couvertes par la caserne
@@ -42,8 +42,8 @@ public class FirestationService {
                                 .collect(Collectors.toList());
 
                 // Mapper vers DTO
-                List<PersonInfoDTO> personInfos = coveredPersons.stream()
-                                .map(person -> new PersonInfoDTO(
+                List<FirestationResidentDTO> personInfos = coveredPersons.stream()
+                                .map(person -> new FirestationResidentDTO(
                                                 person.getFirstName(),
                                                 person.getLastName(),
                                                 person.getAddress(),
@@ -63,10 +63,10 @@ public class FirestationService {
                         }
                 }
                 logger.info("[SUCCESS] getPersonsCoveredByStation");
-                return new FirestationCoverageDTO(personInfos, adultCount, childCount);
+                return new FirestationCoverageResponseDTO(personInfos, adultCount, childCount);
         }
 
-        public PhoneAlertDTO getPhoneOfPersonsCoveredByStation(String stationNumber) {
+        public PhoneAlertResponseDTO getPhoneOfPersonsCoveredByStation(String stationNumber) {
                 DataFile data = dataRepo.loadData();
 
                 // Récupérer les adresses couvertes par la caserne
@@ -87,6 +87,6 @@ public class FirestationService {
                         phoneList.add(phoneNumber);
                 }
 
-                return new PhoneAlertDTO(phoneList);
+                return new PhoneAlertResponseDTO(phoneList);
         }
 }

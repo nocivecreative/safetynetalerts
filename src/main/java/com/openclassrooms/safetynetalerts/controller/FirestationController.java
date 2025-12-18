@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.openclassrooms.safetynetalerts.dto.FirestationCoverageDTO;
-import com.openclassrooms.safetynetalerts.dto.PhoneAlertDTO;
+import com.openclassrooms.safetynetalerts.dto.firestation.FirestationCoverageResponseDTO;
+import com.openclassrooms.safetynetalerts.dto.phonealert.PhoneAlertResponseDTO;
 import com.openclassrooms.safetynetalerts.repository.JsonDataRepo;
 import com.openclassrooms.safetynetalerts.service.FirestationService;
 
@@ -21,18 +21,18 @@ public class FirestationController {
     private FirestationService firestationService;
 
     @GetMapping("/firestation")
-    public ResponseEntity<FirestationCoverageDTO> getPersonsByStation(
+    public ResponseEntity<FirestationCoverageResponseDTO> getPersonsByStation(
             @RequestParam("stationNumber") String stationNumber) {
         logger.info("[CALL] firestation?stationNumber={}", stationNumber);
-        FirestationCoverageDTO result = firestationService.getPersonsCoveredByStation(stationNumber);
+        FirestationCoverageResponseDTO result = firestationService.getPersonsCoveredByStation(stationNumber);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/phoneAlert")
-    public ResponseEntity<PhoneAlertDTO> getPhoneByStation(
+    public ResponseEntity<PhoneAlertResponseDTO> getPhoneByStation(
             @RequestParam("firestation") String firestation) {
         logger.info("[CALL] phoneAlert?firestation={}", firestation);
-        PhoneAlertDTO result = firestationService.getPhoneOfPersonsCoveredByStation(firestation);
+        PhoneAlertResponseDTO result = firestationService.getPhoneOfPersonsCoveredByStation(firestation);
         return ResponseEntity.ok(result);
     }
 

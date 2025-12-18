@@ -29,13 +29,4 @@ public class Utils {
         return Period.between(birthDate, LocalDate.now()).getYears();
     }
 
-    public static int calculateAge(Person person, MedicalRecord medicalRecords) {
-
-        if (medicalRecords.getBirthdate() == null) {
-            return 0; // Age par défaut si pas de dossier médical
-        }
-
-        LocalDate birthDate = LocalDate.parse(medicalRecords.getBirthdate(), DATE_FORMATTER);
-        return Period.between(birthDate, LocalDate.now()).getYears();
-    }
 }

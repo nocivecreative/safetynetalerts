@@ -12,17 +12,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.openclassrooms.safetynetalerts.dto.ChildAlertDTO;
-import com.openclassrooms.safetynetalerts.dto.ChildInfoDTO;
-import com.openclassrooms.safetynetalerts.dto.FireDTO;
-import com.openclassrooms.safetynetalerts.dto.FloodDTO;
-import com.openclassrooms.safetynetalerts.dto.FloodMedicalHistoryDTO;
-import com.openclassrooms.safetynetalerts.dto.FloodPersonInfoDTO;
-import com.openclassrooms.safetynetalerts.dto.HouseholdMemberDTO;
-import com.openclassrooms.safetynetalerts.dto.MedicalHistoryDTO;
-import com.openclassrooms.safetynetalerts.dto.PersonFireDTO;
-import com.openclassrooms.safetynetalerts.dto.PersonInfolastNameDTO;
-import com.openclassrooms.safetynetalerts.dto.PersonInfolastNameMedicalHistoryDTO;
+import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResponseDTO;
+import com.openclassrooms.safetynetalerts.dto.childalert.ChildInfoDTO;
+import com.openclassrooms.safetynetalerts.dto.childalert.HouseholdMemberDTO;
+import com.openclassrooms.safetynetalerts.dto.commons.MedicalHistoryDTO;
+import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResidentDTO;
+import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResponseDTO;
+import com.openclassrooms.safetynetalerts.dto.floodstations.FloodResidentDTO;
+import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationsResponseDTO;
+import com.openclassrooms.safetynetalerts.dto.personinfo.PersonInfoResponseDTO;
 import com.openclassrooms.safetynetalerts.model.DataFile;
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
@@ -38,7 +36,7 @@ public class PersonService {
         @Autowired
         private DataRepo dataRepo;
 
-        public ChildAlertDTO getChildrenLivingAtAdress(String address) {
+        public ChildAlertResponseDTO getChildrenLivingAtAdress(String address) {
                 DataFile data = dataRepo.loadData();
 
                 List<ChildInfoDTO> children = new ArrayList<>();
@@ -59,14 +57,14 @@ public class PersonService {
 
                         System.out.println(medicalRecord);
 
-                        int age = Utils.calculateAge(person, medicalRecord);
+                        int age = Utils.calculateAge(person, data.getMedicalrecords());
                         if (age <= 18) {
                                 // Créer et ajouter un ChildInfoDTO
                                 children.add(new ChildInfoDTO(
                                                 person.getFirstName(),
                                                 person.getLastName(),
-                                                age // ← L'âge est capturé ici !
-                                ));
+                                                age,
+                                                householdMembers));
                         } else {
                                 // Créer et ajouter un HouseholdMemberDTO
                                 householdMembers.add(new HouseholdMemberDTO(
@@ -87,10 +85,10 @@ public class PersonService {
                 System.out.println(children);
 
                 logger.info("[SUCCESS] getChildrenLivingAtAdress");
-                return new ChildAlertDTO(children, householdMembers);
+                return new ChildAlertResponseDTO(children);
         }
 
-        public FireDTO getPersonAndMedicalHistoryLivingAtAdress(String address) {
+        public FireAddressResponseDTO getPersonAndMedicalHistoryLivingAtAdress(String address) {
                 DataFile data = dataRepo.loadData();
 
                 // Récupérer la liste des enfants vivant à cette adresse
@@ -104,7 +102,7 @@ public class PersonService {
                                 .findFirst()
                                 .orElse(null);
 
-                List<PersonFireDTO> personFireList = new ArrayList<>();
+                List<FireAddressResidentDTO> personFireList = new ArrayList<>();
                 for (Person person : personLivingIn) {
                         int age = Utils.calculateAge(person, data.getMedicalrecords());
 
@@ -123,7 +121,7 @@ public class PersonService {
 
                         MedicalHistoryDTO medicalHistory = new MedicalHistoryDTO(medicationList, allergiesList);
 
-                        PersonFireDTO personFire = new PersonFireDTO(
+                        FireAddressResidentDTO personFire = new FireAddressResidentDTO(
                                         person.getLastName(),
                                         person.getPhone(),
                                         medicalHistory,
@@ -132,12 +130,12 @@ public class PersonService {
                         personFireList.add(personFire);
                 }
                 logger.info("[SUCCESS] getPersonAndMedicalHistoryLivingAtAdress");
-                return new FireDTO(personFireList, firestationNumber);
+                return new FireAddressResponseDTO(personFireList, firestationNumber);
         }
 
-        public List<FloodDTO> getPersonAndMedicalHistoryCoveredByStations(List<String> stations) {
+        public List<FloodStationsResponseDTO> getPersonAndMedicalHistoryCoveredByStations(List<String> stations) {
                 DataFile data = dataRepo.loadData();
-                List<FloodDTO> floodDTOs = new ArrayList<>();
+                List<FloodStationsResponseDTO> floodDTOs = new ArrayList<>();
 
                 // Récupére toutes les adresses couvertes par les stations
                 Set<String> firestationAddresses = new HashSet<>();
@@ -152,7 +150,7 @@ public class PersonService {
                 // Pour chaque adresse, créer un FloodDTO
                 for (String address : firestationAddresses) {
 
-                        List<FloodPersonInfoDTO> floodPersonInfoList = new ArrayList<>();
+                        List<FloodResidentDTO> floodPersonInfoList = new ArrayList<>();
 
                         // Récupérer toutes les personnes à cette adresse
                         List<Person> personsAtAddress = data.getPersons().stream()
@@ -183,12 +181,12 @@ public class PersonService {
                                                 : 0;
 
                                 // Créer le DTO de l'historique médical
-                                FloodMedicalHistoryDTO medicalHistory = new FloodMedicalHistoryDTO(
+                                MedicalHistoryDTO medicalHistory = new MedicalHistoryDTO(
                                                 medications,
                                                 allergies);
 
                                 // Créer le DTO de la personne avec toutes les infos
-                                FloodPersonInfoDTO personInfo = new FloodPersonInfoDTO(
+                                FloodResidentDTO personInfo = new FloodResidentDTO(
                                                 person.getLastName(),
                                                 person.getPhone(),
                                                 age,
@@ -198,16 +196,16 @@ public class PersonService {
                         }
 
                         // Créer un FloodDTO pour cette adresse
-                        FloodDTO floodDTO = new FloodDTO(address, floodPersonInfoList);
+                        FloodStationsResponseDTO floodDTO = new FloodStationsResponseDTO(address, floodPersonInfoList);
                         floodDTOs.add(floodDTO);
                 }
 
                 return floodDTOs;
         }
 
-        public List<PersonInfolastNameDTO> getPersonInfosAndMedicalHistoryByLastName(String lastName) {
+        public List<PersonInfoResponseDTO> getPersonInfosAndMedicalHistoryByLastName(String lastName) {
                 DataFile data = dataRepo.loadData();
-                List<PersonInfolastNameDTO> personInfolastNameDTOs = new ArrayList<>();
+                List<PersonInfoResponseDTO> personInfolastNameDTOs = new ArrayList<>();
                 // Récupérer toutes les personnes à cette adresse
                 List<Person> personsAtAddress = data.getPersons().stream()
                                 .filter(p -> p.getLastName().equals(lastName))
@@ -235,11 +233,11 @@ public class PersonService {
                                         : 0;
 
                         // Créer le DTO de l'historique médical
-                        PersonInfolastNameMedicalHistoryDTO medicalHistory = new PersonInfolastNameMedicalHistoryDTO(
+                        MedicalHistoryDTO medicalHistory = new MedicalHistoryDTO(
                                         medications,
                                         allergies);
 
-                        PersonInfolastNameDTO personInfolastNameDTO = new PersonInfolastNameDTO(
+                        PersonInfoResponseDTO personInfolastNameDTO = new PersonInfoResponseDTO(
                                         person.getLastName(),
                                         person.getAddress(),
                                         age, person.getEmail(),
