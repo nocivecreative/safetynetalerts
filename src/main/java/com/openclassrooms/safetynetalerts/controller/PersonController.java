@@ -1,7 +1,5 @@
 package com.openclassrooms.safetynetalerts.controller;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.communityemail.CommunityEmailResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResponseDTO;
-import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationsResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.personinfo.PersonInfoResponseDTO;
 import com.openclassrooms.safetynetalerts.repository.JsonDataRepo;
 import com.openclassrooms.safetynetalerts.service.PersonService;
@@ -25,11 +21,11 @@ public class PersonController {
     @Autowired
     PersonService personService;
 
-    @GetMapping("/childAlert")
-    public ResponseEntity<ChildAlertResponseDTO> getChildrenByAdress(
-            @RequestParam("address") String address) {
-        logger.info("[CALL] childAlert?address={}", address);
-        ChildAlertResponseDTO result = personService.getChildrenLivingAtAdress(address);
+    @GetMapping("/personInfolastName")
+    public ResponseEntity<PersonInfoResponseDTO> getPersonsByLastName(
+            @RequestParam("lastName") String lastName) {
+        logger.info("[CALL] personInfolastName?lastName={}", lastName);
+        PersonInfoResponseDTO result = personService.getPersonInfosAndMedicalHistoryByLastName(lastName);
 
         return ResponseEntity.ok(result);
     }
@@ -39,24 +35,6 @@ public class PersonController {
             @RequestParam("address") String address) {
         logger.info("[CALL] fire?address={}", address);
         FireAddressResponseDTO result = personService.getPersonAndMedicalHistoryLivingAtAdress(address);
-
-        return ResponseEntity.ok(result);
-    }
-
-    @GetMapping("/flood/stations")
-    public ResponseEntity<FloodStationsResponseDTO> getPersonsByStations(
-            @RequestParam("stations") List<String> stations) {
-        logger.info("[CALL] flood/station?stations={}", stations);
-        FloodStationsResponseDTO result = personService.getPersonAndMedicalHistoryCoveredByStations(stations);
-
-        return ResponseEntity.ok(result);
-    }
-
-    @GetMapping("/personInfolastName")
-    public ResponseEntity<PersonInfoResponseDTO> getPersonsByLastName(
-            @RequestParam("lastName") String lastName) {
-        logger.info("[CALL] personInfolastName?lastName={}", lastName);
-        PersonInfoResponseDTO result = personService.getPersonInfosAndMedicalHistoryByLastName(lastName);
 
         return ResponseEntity.ok(result);
     }
