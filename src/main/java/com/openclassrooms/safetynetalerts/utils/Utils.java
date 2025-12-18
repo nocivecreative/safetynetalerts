@@ -5,8 +5,6 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
@@ -14,7 +12,7 @@ import com.openclassrooms.safetynetalerts.model.Person;
 
 @Configuration
 public class Utils {
-    private static final Logger logger = LoggerFactory.getLogger(Utils.class);
+    // private static final Logger logger = LoggerFactory.getLogger(Utils.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 
     public static int calculateAge(Person person, List<MedicalRecord> medicalRecords) {
