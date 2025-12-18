@@ -100,7 +100,7 @@ public class PersonService {
                                 .filter(p -> p.getAddress().equals(address))
                                 .collect(Collectors.toList());
 
-                String firestationNumber = data.getFirestations().stream()
+                int firestationNumber = data.getFirestations().stream()
                                 .filter(p -> p.getAddress().equals(address))
                                 .map(Firestation::getStation) // ou fs -> fs.getStation()
                                 .findFirst()
@@ -137,16 +137,16 @@ public class PersonService {
                 return new FireAddressResponseDTO(personFireList, firestationNumber);
         }
 
-        public FloodStationsResponseDTO getPersonAndMedicalHistoryCoveredByStations(List<String> stations) {
+        public FloodStationsResponseDTO getPersonAndMedicalHistoryCoveredByStations(List<Integer> stations) {
                 DataFile data = dataRepo.loadData();
                 List<FloodHouseholdDTO> households = new ArrayList<>();
 
                 // Récupére toutes les adresses couvertes par les stations
                 Set<String> firestationAddresses = new HashSet<>();
-                for (String station : stations) {
+                for (int station : stations) {
                         firestationAddresses.addAll(
                                         data.getFirestations().stream()
-                                                        .filter(fs -> fs.getStation().equals(station))
+                                                        .filter(fs -> fs.getStation() == station)
                                                         .map(Firestation::getAddress)
                                                         .collect(Collectors.toList()));
                 }

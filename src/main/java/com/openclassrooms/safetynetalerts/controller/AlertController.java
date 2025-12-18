@@ -30,7 +30,7 @@ public class AlertController {
 
     @GetMapping("/firestation")
     public ResponseEntity<FirestationCoverageResponseDTO> getPersonsByStation(
-            @RequestParam("stationNumber") String stationNumber) {
+            @RequestParam("stationNumber") int stationNumber) {
         logger.info("[CALL] firestation?stationNumber={}", stationNumber);
         FirestationCoverageResponseDTO result = firestationService.getPersonsCoveredByStation(stationNumber);
         return ResponseEntity.ok(result);
@@ -38,7 +38,7 @@ public class AlertController {
 
     @GetMapping("/phoneAlert")
     public ResponseEntity<PhoneAlertResponseDTO> getPhoneByStation(
-            @RequestParam("firestation") String firestation) {
+            @RequestParam("firestation") int firestation) {
         logger.info("[CALL] phoneAlert?firestation={}", firestation);
         PhoneAlertResponseDTO result = firestationService.getPhoneOfPersonsCoveredByStation(firestation);
         return ResponseEntity.ok(result);
@@ -55,7 +55,7 @@ public class AlertController {
 
     @GetMapping("/flood/stations") // TODO : Nécessité de déplacer dans floodController ?
     public ResponseEntity<FloodStationsResponseDTO> getPersonsByStations(
-            @RequestParam("stations") List<String> stations) {
+            @RequestParam("stations") List<Integer> stations) {
         logger.info("[CALL] flood/station?stations={}", stations);
         FloodStationsResponseDTO result = personService.getPersonAndMedicalHistoryCoveredByStations(stations);
 

@@ -27,12 +27,12 @@ public class FirestationService {
         @Autowired
         private DataRepo dataRepo;
 
-        public FirestationCoverageResponseDTO getPersonsCoveredByStation(String stationNumber) {
+        public FirestationCoverageResponseDTO getPersonsCoveredByStation(int stationNumber) {
                 DataFile data = dataRepo.loadData();
 
                 // Récupérer les adresses couvertes par la caserne
                 List<String> coveredAddresses = data.getFirestations().stream()
-                                .filter(fs -> fs.getStation().equals(stationNumber))
+                                .filter(fs -> fs.getStation() == stationNumber)
                                 .map(Firestation::getAddress)
                                 .collect(Collectors.toList());
 
@@ -66,12 +66,12 @@ public class FirestationService {
                 return new FirestationCoverageResponseDTO(personInfos, adultCount, childCount);
         }
 
-        public PhoneAlertResponseDTO getPhoneOfPersonsCoveredByStation(String stationNumber) {
+        public PhoneAlertResponseDTO getPhoneOfPersonsCoveredByStation(int stationNumber) {
                 DataFile data = dataRepo.loadData();
 
                 // Récupérer les adresses couvertes par la caserne
                 List<String> coveredAddresses = data.getFirestations().stream()
-                                .filter(fs -> fs.getStation().equals(stationNumber))
+                                .filter(fs -> fs.getStation() == stationNumber)
                                 .map(Firestation::getAddress)
                                 .collect(Collectors.toList());
 

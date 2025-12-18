@@ -6,7 +6,7 @@ import lombok.Data;
 public class Firestation {
 
     private String address;
-    private String station;
+    private int station;
 
     public Firestation() {
     }

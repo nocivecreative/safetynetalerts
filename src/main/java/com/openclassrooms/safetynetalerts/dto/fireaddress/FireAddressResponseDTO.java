@@ -7,9 +7,9 @@ import lombok.Data;
 @Data
 public class FireAddressResponseDTO {
     private List<FireAddressResidentDTO> personList;
-    private String firestationNumber;
+    private int firestationNumber;
 
-    public FireAddressResponseDTO(List<FireAddressResidentDTO> personList, String firestationNumber) {
+    public FireAddressResponseDTO(List<FireAddressResidentDTO> personList, int firestationNumber) {
         this.personList = personList;
         this.firestationNumber = firestationNumber;
     }
