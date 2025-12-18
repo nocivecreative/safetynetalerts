@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +29,11 @@ import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.repository.DataRepo;
-import com.openclassrooms.safetynetalerts.repository.JsonDataRepo;
 import com.openclassrooms.safetynetalerts.utils.Utils;
 
 @Service
 public class PersonService {
-        private final Logger logger = LoggerFactory.getLogger(JsonDataRepo.class);
+        private final Logger logger = LoggerFactory.getLogger(PersonService.class);
 
         @Autowired
         private DataRepo dataRepo;
@@ -51,7 +49,7 @@ public class PersonService {
                 // Récupérer la liste des enfants vivant à cette adresse
                 List<Person> personLivingIn = data.getPersons().stream()
                                 .filter(p -> p.getAddress().equals(address))
-                                .collect(Collectors.toList());
+                                .toList();
 
                 // Pour chaque personne, récupération du dossier medical en O(N+M)
                 logger.debug("[SERVICE] Starting age computing for sorting children/adults living at address={}",
@@ -81,7 +79,7 @@ public class PersonService {
                 /*
                  * List<MedicalRecord> personMedicalRecords = data.getMedicalrecords().stream()
                  * .filter(mr -> mr.getFirstName().equals("John"))
-                 * .collect(Collectors.toList());
+                 * .toList();
                  */
 
                 return new ChildAlertResponseDTO(children);
@@ -94,7 +92,7 @@ public class PersonService {
                 // Récupérer la liste des enfants vivant à cette adresse
                 List<Person> personLivingIn = data.getPersons().stream()
                                 .filter(p -> p.getAddress().equals(address))
-                                .collect(Collectors.toList());
+                                .toList();
 
                 int firestationNumber = data.getFirestations().stream()
                                 .filter(p -> p.getAddress().equals(address))
@@ -144,7 +142,7 @@ public class PersonService {
                                         data.getFirestations().stream()
                                                         .filter(fs -> fs.getStation() == station)
                                                         .map(Firestation::getAddress)
-                                                        .collect(Collectors.toList()));
+                                                        .toList());
                 }
 
                 // Pour chaque adresse, créer une liste des personnes
@@ -155,7 +153,7 @@ public class PersonService {
                         // Récupérer toutes les personnes à cette adresse
                         List<Person> personsAtAddress = data.getPersons().stream()
                                         .filter(p -> p.getAddress().equals(address))
-                                        .collect(Collectors.toList());
+                                        .toList();
 
                         // Pour chaque personne, créer un FloodPersonInfoDTO
                         for (Person person : personsAtAddress) {
@@ -211,7 +209,7 @@ public class PersonService {
                 // Récupérer toutes les personnes à cette adresse
                 List<Person> personsAtAddress = data.getPersons().stream()
                                 .filter(p -> p.getLastName().equals(lastName))
-                                .collect(Collectors.toList());
+                                .toList();
 
                 for (Person person : personsAtAddress) {
 
@@ -259,7 +257,7 @@ public class PersonService {
                 Set<String> emailAddresses = new TreeSet<>();
                 List<Person> personsInCity = data.getPersons().stream()
                                 .filter(p -> p.getCity().equals(city))
-                                .collect(Collectors.toList());
+                                .toList();
 
                 for (Person person : personsInCity) {
 

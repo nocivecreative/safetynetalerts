@@ -14,13 +14,12 @@ import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.firestation.FirestationCoverageResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationsResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.phonealert.PhoneAlertResponseDTO;
-import com.openclassrooms.safetynetalerts.repository.JsonDataRepo;
 import com.openclassrooms.safetynetalerts.service.FirestationService;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 
 @RestController
 public class AlertController {
-    private final Logger logger = LoggerFactory.getLogger(JsonDataRepo.class);
+    private final Logger logger = LoggerFactory.getLogger(AlertController.class);
 
     @Autowired
     private FirestationService firestationService;

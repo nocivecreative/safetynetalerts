@@ -11,12 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.openclassrooms.safetynetalerts.dto.communityemail.CommunityEmailResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.personinfo.PersonInfoResponseDTO;
-import com.openclassrooms.safetynetalerts.repository.JsonDataRepo;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 
 @RestController
 public class PersonController {
-    private final Logger logger = LoggerFactory.getLogger(JsonDataRepo.class);
+    private final Logger logger = LoggerFactory.getLogger(PersonController.class);
 
     @Autowired
     PersonService personService;

@@ -20,17 +20,17 @@ public class Utils {
     public static int calculateAge(Person person, List<MedicalRecord> medicalRecords) {
         // logger.debug("[UTILS] Age computing for :{},{}", person.getFirstName(),
         // person.getLastName());
-        MedicalRecord record = medicalRecords.stream()
+        MedicalRecord medicalRecord = medicalRecords.stream()
                 .filter(mr -> mr.getFirstName().equals(person.getFirstName())
                         && mr.getLastName().equals(person.getLastName()))
                 .findFirst()
                 .orElse(null);
 
-        if (record == null || record.getBirthdate() == null) {
+        if (medicalRecord == null || medicalRecord.getBirthdate() == null) {
             return 0; // Age par défaut si pas de dossier médical
         }
 
-        LocalDate birthDate = LocalDate.parse(record.getBirthdate(), DATE_FORMATTER);
+        LocalDate birthDate = LocalDate.parse(medicalRecord.getBirthdate(), DATE_FORMATTER);
         return Period.between(birthDate, LocalDate.now()).getYears();
     }
 

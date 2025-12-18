@@ -3,7 +3,6 @@ package com.openclassrooms.safetynetalerts.service;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +34,12 @@ public class FirestationService {
                 List<String> coveredAddresses = data.getFirestations().stream()
                                 .filter(fs -> fs.getStation() == stationNumber)
                                 .map(Firestation::getAddress)
-                                .collect(Collectors.toList());
+                                .toList();
 
                 // Récupérer les personnes à ces adresses
                 List<Person> coveredPersons = data.getPersons().stream()
                                 .filter(person -> coveredAddresses.contains(person.getAddress()))
-                                .collect(Collectors.toList());
+                                .toList();
 
                 // Mapper vers DTO
                 List<FirestationResidentDTO> personInfos = coveredPersons.stream()
@@ -49,7 +48,7 @@ public class FirestationService {
                                                 person.getLastName(),
                                                 person.getAddress(),
                                                 person.getPhone()))
-                                .collect(Collectors.toList());
+                                .toList();
 
                 // Calculer adultes et enfants
                 int adultCount = 0;
@@ -75,12 +74,12 @@ public class FirestationService {
                 List<String> coveredAddresses = data.getFirestations().stream()
                                 .filter(fs -> fs.getStation() == stationNumber)
                                 .map(Firestation::getAddress)
-                                .collect(Collectors.toList());
+                                .toList();
 
                 // Récupérer les personnes à ces adresses
                 List<Person> coveredPersons = data.getPersons().stream()
                                 .filter(person -> coveredAddresses.contains(person.getAddress()))
-                                .collect(Collectors.toList());
+                                .toList();
 
                 // Mapper vers DTO
                 Set<String> phoneList = new TreeSet<>();
