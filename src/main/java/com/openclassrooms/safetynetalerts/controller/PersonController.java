@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResponseDTO;
+import com.openclassrooms.safetynetalerts.dto.communityemail.CommunityEmailResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationsResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.personinfo.PersonInfoResponseDTO;
@@ -52,10 +53,19 @@ public class PersonController {
     }
 
     @GetMapping("/personInfolastName")
-    public ResponseEntity<List<PersonInfoResponseDTO>> getPersonsByStations(
+    public ResponseEntity<List<PersonInfoResponseDTO>> getPersonsByLastName(
             @RequestParam("lastName") String lastName) {
         logger.info("[CALL] personInfolastName?lastName={}", lastName);
         List<PersonInfoResponseDTO> result = personService.getPersonInfosAndMedicalHistoryByLastName(lastName);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/communityEmail")
+    public ResponseEntity<CommunityEmailResponseDTO> getEmailsByCity(
+            @RequestParam("city") String city) {
+        logger.info("[CALL] personInfolastName?lastName={}", city);
+        CommunityEmailResponseDTO result = personService.getEmailsaddressesForCityResidents(city);
 
         return ResponseEntity.ok(result);
     }

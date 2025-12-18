@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.childalert.ChildInfoDTO;
 import com.openclassrooms.safetynetalerts.dto.childalert.HouseholdMemberDTO;
 import com.openclassrooms.safetynetalerts.dto.commons.MedicalHistoryDTO;
+import com.openclassrooms.safetynetalerts.dto.communityemail.CommunityEmailResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResidentDTO;
 import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodResidentDTO;
@@ -247,5 +249,23 @@ public class PersonService {
                 }
 
                 return personInfolastNameDTOs;
+        }
+
+        public CommunityEmailResponseDTO getEmailsaddressesForCityResidents(String city) {
+                DataFile data = dataRepo.loadData();
+
+                // Récupérer toutes les personnes à cette adresse
+                Set<String> emailAddresses = new TreeSet<>();
+                List<Person> personsInCity = data.getPersons().stream()
+                                .filter(p -> p.getCity().equals(city))
+                                .collect(Collectors.toList());
+
+                for (Person person : personsInCity) {
+
+                        emailAddresses.add(person.getEmail());
+
+                }
+
+                return new CommunityEmailResponseDTO(emailAddresses);
         }
 }
