@@ -20,6 +20,7 @@ import com.openclassrooms.safetynetalerts.dto.commons.MedicalHistoryDTO;
 import com.openclassrooms.safetynetalerts.dto.communityemail.CommunityEmailResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResidentDTO;
 import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResponseDTO;
+import com.openclassrooms.safetynetalerts.dto.floodstations.FloodHouseholdDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodResidentDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationsResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.personinfo.PersonInfoResponseDTO;
@@ -136,9 +137,9 @@ public class PersonService {
                 return new FireAddressResponseDTO(personFireList, firestationNumber);
         }
 
-        public List<FloodStationsResponseDTO> getPersonAndMedicalHistoryCoveredByStations(List<String> stations) {
+        public FloodStationsResponseDTO getPersonAndMedicalHistoryCoveredByStations(List<String> stations) {
                 DataFile data = dataRepo.loadData();
-                List<FloodStationsResponseDTO> floodDTOs = new ArrayList<>();
+                List<FloodHouseholdDTO> households = new ArrayList<>();
 
                 // Récupére toutes les adresses couvertes par les stations
                 Set<String> firestationAddresses = new HashSet<>();
@@ -150,7 +151,7 @@ public class PersonService {
                                                         .collect(Collectors.toList()));
                 }
 
-                // Pour chaque adresse, créer un FloodDTO
+                // Pour chaque adresse, créer un floodHouseDTO
                 for (String address : firestationAddresses) {
 
                         List<FloodResidentDTO> floodPersonInfoList = new ArrayList<>();
@@ -198,12 +199,12 @@ public class PersonService {
                                 floodPersonInfoList.add(personInfo);
                         }
 
-                        // Créer un FloodDTO pour cette adresse
-                        FloodStationsResponseDTO floodDTO = new FloodStationsResponseDTO(address, floodPersonInfoList);
-                        floodDTOs.add(floodDTO);
+                        // Créer un floodHouseDTO pour cette adresse
+                        FloodHouseholdDTO floodHouseDTO = new FloodHouseholdDTO(address, floodPersonInfoList);
+                        households.add(floodHouseDTO);
                 }
 
-                return floodDTOs;
+                return new FloodStationsResponseDTO(households);
         }
 
         public PersonInfoResponseDTO getPersonInfosAndMedicalHistoryByLastName(String lastName) {

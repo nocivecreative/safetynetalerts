@@ -44,10 +44,10 @@ public class PersonController {
     }
 
     @GetMapping("/flood/stations")
-    public ResponseEntity<List<FloodStationsResponseDTO>> getPersonsByStations(
+    public ResponseEntity<FloodStationsResponseDTO> getPersonsByStations(
             @RequestParam("stations") List<String> stations) {
         logger.info("[CALL] flood/station?stations={}", stations);
-        List<FloodStationsResponseDTO> result = personService.getPersonAndMedicalHistoryCoveredByStations(stations);
+        FloodStationsResponseDTO result = personService.getPersonAndMedicalHistoryCoveredByStations(stations);
 
         return ResponseEntity.ok(result);
     }
