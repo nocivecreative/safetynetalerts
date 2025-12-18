@@ -17,18 +17,19 @@ import com.openclassrooms.safetynetalerts.model.DataFile;
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.repository.DataRepo;
-import com.openclassrooms.safetynetalerts.repository.JsonDataRepo;
 import com.openclassrooms.safetynetalerts.utils.Utils;
 
 @Service
 public class FirestationService {
-        private final Logger logger = LoggerFactory.getLogger(JsonDataRepo.class);
+        private final Logger logger = LoggerFactory.getLogger(FirestationService.class);
 
         @Autowired
         private DataRepo dataRepo;
 
         public FirestationCoverageResponseDTO getPersonsCoveredByStation(int stationNumber) {
                 DataFile data = dataRepo.loadData();
+
+                logger.debug("[SERVICE] looking for perons covered by stationNumber={}", stationNumber);
 
                 // Récupérer les adresses couvertes par la caserne
                 List<String> coveredAddresses = data.getFirestations().stream()
@@ -54,6 +55,7 @@ public class FirestationService {
                 int adultCount = 0;
                 int childCount = 0;
 
+                logger.debug("[SERVICE] Starting age computing for perons covered by stationNumber={}", stationNumber);
                 for (Person person : coveredPersons) {
                         int age = Utils.calculateAge(person, data.getMedicalrecords());
                         if (age <= 18) {
@@ -62,13 +64,13 @@ public class FirestationService {
                                 adultCount++;
                         }
                 }
-                logger.info("[SUCCESS] getPersonsCoveredByStation");
                 return new FirestationCoverageResponseDTO(personInfos, adultCount, childCount);
         }
 
         public PhoneAlertResponseDTO getPhoneOfPersonsCoveredByStation(int stationNumber) {
                 DataFile data = dataRepo.loadData();
 
+                logger.debug("[SERVICE] looking for phons of persons covered by stationNumber={}", stationNumber);
                 // Récupérer les adresses couvertes par la caserne
                 List<String> coveredAddresses = data.getFirestations().stream()
                                 .filter(fs -> fs.getStation() == stationNumber)

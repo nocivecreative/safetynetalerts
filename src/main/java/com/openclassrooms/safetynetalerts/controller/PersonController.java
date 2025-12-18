@@ -24,27 +24,33 @@ public class PersonController {
     @GetMapping("/personInfolastName")
     public ResponseEntity<PersonInfoResponseDTO> getPersonsByLastName(
             @RequestParam("lastName") String lastName) {
-        logger.info("[CALL] personInfolastName?lastName={}", lastName);
+
+        logger.info("[CALL] GET personInfolastName?lastName={}", lastName);
         PersonInfoResponseDTO result = personService.getPersonInfosAndMedicalHistoryByLastName(lastName);
 
+        logger.info("[RESPONSE] GET personInfolastName?lastName={} -> SUCCESS", lastName);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/fire")
     public ResponseEntity<FireAddressResponseDTO> getPersonsByAdress(
             @RequestParam("address") String address) {
-        logger.info("[CALL] fire?address={}", address);
+
+        logger.info("[CALL] GET fire?address={}", address);
         FireAddressResponseDTO result = personService.getPersonAndMedicalHistoryLivingAtAdress(address);
 
+        logger.info("[RESPONSE] GET fire?address={} -> SUCCEESS", address);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/communityEmail")
     public ResponseEntity<CommunityEmailResponseDTO> getEmailsByCity(
             @RequestParam("city") String city) {
-        logger.info("[CALL] personInfolastName?lastName={}", city);
+
+        logger.info("[CALL] GET personInfolastName?lastName={}", city);
         CommunityEmailResponseDTO result = personService.getEmailsaddressesForCityResidents(city);
 
+        logger.info("[RESPONSE] GET personInfolastName?lastName={} -> SUCCESS", city);
         return ResponseEntity.ok(result);
     }
 
