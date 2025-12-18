@@ -25,9 +25,6 @@ public class FirestationService {
         @Autowired
         private DataRepo dataRepo;
 
-        @Autowired
-        private Utils utils;
-
         public FirestationCoverageDTO getPersonsCoveredByStation(String stationNumber) {
                 DataFile data = dataRepo.loadData();
 
@@ -56,7 +53,7 @@ public class FirestationService {
                 int childCount = 0;
 
                 for (Person person : coveredPersons) {
-                        int age = utils.calculateAge(person, data.getMedicalrecords());
+                        int age = Utils.calculateAge(person, data.getMedicalrecords());
                         if (age <= 18) {
                                 childCount++;
                         } else {
