@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.openclassrooms.safetynetalerts.dto.ChildAlertDTO;
 import com.openclassrooms.safetynetalerts.dto.FireDTO;
 import com.openclassrooms.safetynetalerts.dto.FloodDTO;
+import com.openclassrooms.safetynetalerts.dto.PersonInfolastNameDTO;
 import com.openclassrooms.safetynetalerts.repository.JsonDataRepo;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 
@@ -46,6 +47,15 @@ public class PersonController {
             @RequestParam("stations") List<String> stations) {
         logger.info("[CALL] flood/station?stations={}", stations);
         List<FloodDTO> result = personService.getPersonAndMedicalHistoryCoveredByStations(stations);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/personInfolastName")
+    public ResponseEntity<List<PersonInfolastNameDTO>> getPersonsByStations(
+            @RequestParam("lastName") String lastName) {
+        logger.info("[CALL] personInfolastName?lastName={}", lastName);
+        List<PersonInfolastNameDTO> result = personService.getPersonInfosAndMedicalHistoryByLastName(lastName);
 
         return ResponseEntity.ok(result);
     }

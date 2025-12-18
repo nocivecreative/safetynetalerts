@@ -21,6 +21,8 @@ import com.openclassrooms.safetynetalerts.dto.FloodPersonInfoDTO;
 import com.openclassrooms.safetynetalerts.dto.HouseholdMemberDTO;
 import com.openclassrooms.safetynetalerts.dto.MedicalHistoryDTO;
 import com.openclassrooms.safetynetalerts.dto.PersonFireDTO;
+import com.openclassrooms.safetynetalerts.dto.PersonInfolastNameDTO;
+import com.openclassrooms.safetynetalerts.dto.PersonInfolastNameMedicalHistoryDTO;
 import com.openclassrooms.safetynetalerts.model.DataFile;
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
@@ -201,5 +203,51 @@ public class PersonService {
                 }
 
                 return floodDTOs;
+        }
+
+        public List<PersonInfolastNameDTO> getPersonInfosAndMedicalHistoryByLastName(String lastName) {
+                DataFile data = dataRepo.loadData();
+                List<PersonInfolastNameDTO> personInfolastNameDTOs = new ArrayList<>();
+                // Récupérer toutes les personnes à cette adresse
+                List<Person> personsAtAddress = data.getPersons().stream()
+                                .filter(p -> p.getLastName().equals(lastName))
+                                .collect(Collectors.toList());
+
+                for (Person person : personsAtAddress) {
+
+                        // Récupérer le MedicalRecord UNE SEULE FOIS
+                        MedicalRecord medicalRecord = data.getMedicalrecords().stream()
+                                        .filter(mr -> mr.getFirstName().equals(person.getFirstName())
+                                                        && mr.getLastName().equals(person.getLastName()))
+                                        .findFirst()
+                                        .orElse(null);
+                        // Extraire les informations du medical record
+                        List<String> medications = medicalRecord != null
+                                        ? medicalRecord.getMedications()
+                                        : Collections.emptyList();
+
+                        List<String> allergies = medicalRecord != null
+                                        ? medicalRecord.getAllergies()
+                                        : Collections.emptyList();
+
+                        int age = medicalRecord != null
+                                        ? Utils.calculateAge(person, data.getMedicalrecords())
+                                        : 0;
+
+                        // Créer le DTO de l'historique médical
+                        PersonInfolastNameMedicalHistoryDTO medicalHistory = new PersonInfolastNameMedicalHistoryDTO(
+                                        medications,
+                                        allergies);
+
+                        PersonInfolastNameDTO personInfolastNameDTO = new PersonInfolastNameDTO(
+                                        person.getLastName(),
+                                        person.getAddress(),
+                                        age, person.getEmail(),
+                                        medicalHistory);
+
+                        personInfolastNameDTOs.add(personInfolastNameDTO);
+                }
+
+                return personInfolastNameDTOs;
         }
 }
