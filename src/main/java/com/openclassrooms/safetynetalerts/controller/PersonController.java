@@ -3,14 +3,20 @@ package com.openclassrooms.safetynetalerts.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.openclassrooms.safetynetalerts.dto.communityemail.CommunityEmailResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.personinfo.PersonInfoResponseDTO;
+import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 
 @RestController
@@ -22,7 +28,7 @@ public class PersonController {
 
     @GetMapping("/personInfolastName")
     public ResponseEntity<PersonInfoResponseDTO> getPersonsByLastName(
-            @RequestParam("lastName") String lastName) {
+            @RequestParam("lastName") String lastName) { // TODO ne doit pas prendre le param lastName=
 
         logger.info("[CALL] GET personInfolastName?lastName={}", lastName);
         PersonInfoResponseDTO result = personService.getPersonInfosAndMedicalHistoryByLastName(lastName);
@@ -51,6 +57,27 @@ public class PersonController {
 
         logger.info("[RESPONSE] GET personInfolastName?lastName={} -> SUCCESS", city);
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/person")
+    public ResponseEntity<Void> addPerson(@RequestBody Person person) {
+        personService.addPerson(person);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PutMapping("/person")
+    public ResponseEntity<Void> updatePerson(@RequestBody Person person) {
+        personService.updatePerson(person);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/person")
+    public ResponseEntity<Void> deletePerson(
+            @RequestParam String firstName,
+            @RequestParam String lastName) {
+
+        personService.deletePerson(firstName, lastName);
+        return ResponseEntity.noContent().build();
     }
 
 }

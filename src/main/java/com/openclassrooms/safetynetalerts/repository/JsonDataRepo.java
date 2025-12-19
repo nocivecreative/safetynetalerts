@@ -7,7 +7,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Repository;
 
 import com.openclassrooms.safetynetalerts.model.DataFile;
+import com.openclassrooms.safetynetalerts.model.Person;
 
+import jakarta.annotation.PostConstruct;
 import tools.jackson.databind.json.JsonMapper;
 
 @Repository
@@ -17,16 +19,46 @@ public class JsonDataRepo implements DataRepo {
     @Autowired
     private JsonMapper mapper;
 
-    @Override
-    public DataFile loadData() {
+    private DataFile dataFile;
+
+    @PostConstruct
+    public void init() {
         try {
             ClassPathResource resource = new ClassPathResource("data.json");
-            DataFile Jsondata = mapper.readValue(resource.getInputStream(), DataFile.class);
-            logger.debug("[REPOSITORY] Json file read and parsed");
-            return Jsondata;
+            this.dataFile = mapper.readValue(resource.getInputStream(), DataFile.class);
+            logger.debug("[REPOSITORY] Json chargé");
         } catch (Exception e) {
             throw new RuntimeException("Impossible de lire data.json", e);
         }
+    }
+
+    @Override
+    public DataFile loadData() {
+        return dataFile;
+    }
+
+    @Override
+    public boolean personExists(String firstName, String lastName) {
+        return loadData().getPersons().stream()
+                .anyMatch(p -> p.getFirstName().equals(firstName)
+                        && p.getLastName().equals(lastName));
+    }
+
+    @Override
+    public void addPerson(Person person) {
+        loadData().getPersons().add(person);
+    }
+
+    @Override
+    public void updatePerson(Person person) {
+        deletePerson(person.getFirstName(), person.getLastName());
+        addPerson(person);
+    }
+
+    @Override
+    public void deletePerson(String firstName, String lastName) {
+        loadData().getPersons().removeIf(p -> p.getFirstName().equals(firstName)
+                && p.getLastName().equals(lastName));
     }
 
 }

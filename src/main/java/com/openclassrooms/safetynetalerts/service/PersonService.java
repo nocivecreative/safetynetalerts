@@ -267,4 +267,42 @@ public class PersonService {
 
                 return new CommunityEmailResponseDTO(emailAddresses);
         }
+
+        public void addPerson(Person person) {
+
+                logger.debug("[SERVICE] Ajout de la personne {} {}",
+                                person.getFirstName(), person.getLastName());
+
+                if (dataRepo.personExists(person.getFirstName(), person.getLastName())) {
+                        logger.error("[SERVICE] La personne existe déjà: {} {}",
+                                        person.getFirstName(), person.getLastName());
+                        throw new IllegalArgumentException("La personne existe déjà");
+                }
+
+                dataRepo.addPerson(person);
+
+                logger.debug("[SERVICE] Personnee ajoutéee correctement: {} {}",
+                                person.getFirstName(), person.getLastName());
+        }
+
+        public void updatePerson(Person person) {
+                logger.debug("[SERVICE] Mise à jour de la personne {} {}",
+                                person.getFirstName(), person.getLastName());
+                if (!dataRepo.personExists(person.getFirstName(), person.getLastName())) {
+                        logger.error("[SERVICE] Personne non trouvée: {} {}",
+                                        person.getFirstName(), person.getLastName());
+                        throw new IllegalArgumentException("Personne non trouvée");
+                }
+                dataRepo.updatePerson(person);
+        }
+
+        public void deletePerson(String firstName, String lastName) {
+                if (!dataRepo.personExists(firstName, lastName)) {
+                        logger.error("[SERVICE] Personne non trouvée: {} {}",
+                                        firstName, lastName);
+                        throw new IllegalArgumentException("Personne non trouvée");
+                }
+                dataRepo.deletePerson(firstName, lastName);
+        }
+
 }
