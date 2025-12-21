@@ -21,74 +21,74 @@ import com.openclassrooms.safetynetalerts.service.PersonService;
 
 @RestController
 public class PersonController {
-    private final Logger logger = LoggerFactory.getLogger(PersonController.class);
+        private final Logger logger = LoggerFactory.getLogger(PersonController.class);
 
-    @Autowired
-    PersonService personService;
+        @Autowired
+        PersonService personService;
 
-    @GetMapping("/personInfolastName")
-    public ResponseEntity<PersonInfoResponseDTO> getPersonsByLastName(
-            @RequestParam("lastName") String lastName) { // TODO ne doit pas prendre le param lastName=
+        @GetMapping("/personInfolastName")
+        public ResponseEntity<PersonInfoResponseDTO> getPersonsByLastName(
+                        @RequestParam("lastName") String lastName) { // TODO ne doit pas prendre le param lastName=
 
-        logger.info("[CALL] GET personInfolastName?lastName={}", lastName);
-        PersonInfoResponseDTO result = personService.getPersonInfosAndMedicalHistoryByLastName(lastName);
+                logger.info("[CALL] GET personInfolastName?lastName={}", lastName);
+                PersonInfoResponseDTO result = personService.getPersonInfosAndMedicalHistoryByLastName(lastName);
 
-        logger.info("[RESPONSE] GET personInfolastName?lastName={} -> SUCCESS", lastName);
-        return ResponseEntity.ok(result);
-    }
+                logger.info("[RESPONSE] GET personInfolastName?lastName={} -> SUCCESS", lastName);
+                return ResponseEntity.ok(result);
+        }
 
-    @GetMapping("/fire")
-    public ResponseEntity<FireAddressResponseDTO> getPersonsByAdress(
-            @RequestParam("address") String address) {
+        @GetMapping("/fire")
+        public ResponseEntity<FireAddressResponseDTO> getPersonsByAdress(
+                        @RequestParam("address") String address) {
 
-        logger.info("[CALL] GET fire?address={}", address);
-        FireAddressResponseDTO result = personService.getPersonAndMedicalHistoryLivingAtAdress(address);
+                logger.info("[CALL] GET fire?address={}", address);
+                FireAddressResponseDTO result = personService.getPersonAndMedicalHistoryLivingAtAdress(address);
 
-        logger.info("[RESPONSE] GET fire?address={} -> SUCCEESS", address);
-        return ResponseEntity.ok(result);
-    }
+                logger.info("[RESPONSE] GET fire?address={} -> SUCCEESS", address);
+                return ResponseEntity.ok(result);
+        }
 
-    @GetMapping("/communityEmail")
-    public ResponseEntity<CommunityEmailResponseDTO> getEmailsByCity(
-            @RequestParam("city") String city) {
+        @GetMapping("/communityEmail")
+        public ResponseEntity<CommunityEmailResponseDTO> getEmailsByCity(
+                        @RequestParam("city") String city) {
 
-        logger.info("[CALL] GET personInfolastName?lastName={}", city);
-        CommunityEmailResponseDTO result = personService.getEmailsaddressesForCityResidents(city);
+                logger.info("[CALL] GET personInfolastName?lastName={}", city);
+                CommunityEmailResponseDTO result = personService.getEmailsaddressesForCityResidents(city);
 
-        logger.info("[RESPONSE] GET personInfolastName?lastName={} -> SUCCESS", city);
-        return ResponseEntity.ok(result);
-    }
+                logger.info("[RESPONSE] GET personInfolastName?lastName={} -> SUCCESS", city);
+                return ResponseEntity.ok(result);
+        }
 
-    @PostMapping("/person")
-    public ResponseEntity<Void> addPerson(@RequestBody Person person) {
-        logger.debug("[CALL] POST person -> Adding person {} {}",
-                person.getFirstName(), person.getLastName());
-        personService.addPerson(person);
-        logger.debug("[RESPONSE] POST person -> Person successfully added : {} {}",
-                person.getFirstName(), person.getLastName());
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
+        @PostMapping("/person")
+        public ResponseEntity<Void> addPerson(@RequestBody Person person) {
+                logger.debug("[CALL] POST person -> Adding person {} {}",
+                                person.getFirstName(), person.getLastName());
+                personService.addPerson(person);
+                logger.debug("[RESPONSE] POST person -> Person successfully added : {} {}",
+                                person.getFirstName(), person.getLastName());
+                return ResponseEntity.status(HttpStatus.CREATED).build();
+        }
 
-    @PutMapping("/person")
-    public ResponseEntity<Void> updatePerson(@RequestBody Person person) {
-        logger.debug("[CALL] PUT person -> Update person {} {}",
-                person.getFirstName(), person.getLastName());
-        personService.updatePerson(person);
-        logger.debug("[RESPONSE] PUT person -> person successfully updated {} {}",
-                person.getFirstName(), person.getLastName());
-        return ResponseEntity.ok().build();
-    }
+        @PutMapping("/person")
+        public ResponseEntity<Void> updatePerson(@RequestBody Person person) {
+                logger.debug("[CALL] PUT person -> Update person {} {}",
+                                person.getFirstName(), person.getLastName());
+                personService.updatePerson(person);
+                logger.debug("[RESPONSE] PUT person -> person successfully updated {} {}",
+                                person.getFirstName(), person.getLastName());
+                return ResponseEntity.ok().build();
+        }
 
-    @DeleteMapping("/person")
-    public ResponseEntity<Void> deletePerson(
-            @RequestParam String firstName,
-            @RequestParam String lastName) {
-        logger.debug("[CALL] DELETE person -> deleting person {} {}",
-                firstName, lastName);
-        personService.deletePerson(firstName, lastName);
-        logger.debug("[RESPONSE] DELETE person -> person successfully deleted {} {}",
-                firstName, lastName);
-        return ResponseEntity.noContent().build();
-    }
+        @DeleteMapping("/person")
+        public ResponseEntity<Void> deletePerson(
+                        @RequestParam String firstName,
+                        @RequestParam String lastName) {
+                logger.debug("[CALL] DELETE person -> deleting person {} {}",
+                                firstName, lastName);
+                personService.deletePerson(firstName, lastName);
+                logger.debug("[RESPONSE] DELETE person -> person successfully deleted {} {}",
+                                firstName, lastName);
+                return ResponseEntity.noContent().build();
+        }
 
 }

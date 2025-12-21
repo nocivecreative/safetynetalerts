@@ -35,9 +35,59 @@ public class MedicalRecordRepository {
                 .findFirst();
     }
 
-    /* public List<MedicalRecord> findByLastName(String lastName) {
+    public boolean existsByFirstNameAndLastName(String firstName, String lastName) {
         return data.getMedicalrecords().stream()
-                .filter(mr -> mr.getLastName().equals(lastName))
-                .toList();
-    } */
+                .anyMatch(mr -> mr.getFirstName().equals(firstName)
+                        && mr.getLastName().equals(lastName));
+    }
+
+    public MedicalRecord save(MedicalRecord medicalRecord) {
+        // Vérifier si le dossier existe déjà
+        Optional<MedicalRecord> existing = findByFirstNameAndLastName(
+                medicalRecord.getFirstName(),
+                medicalRecord.getLastName());
+
+        if (existing.isPresent()) {
+            // Si il existe, on le met à jour
+            MedicalRecord existingRecord = existing.get();
+            updateMedicalRecordFields(existingRecord, medicalRecord);
+            return existingRecord;
+        } else {
+            // Sinon on l'ajoute
+            data.getMedicalrecords().add(medicalRecord);
+            return medicalRecord;
+        }
+    }
+
+    public Optional<MedicalRecord> update(String firstName, String lastName, MedicalRecord updatedRecord) {
+        Optional<MedicalRecord> existing = findByFirstNameAndLastName(firstName, lastName);
+
+        if (existing.isPresent()) {
+            MedicalRecord record = existing.get();
+            updateMedicalRecordFields(record, updatedRecord);
+            return Optional.of(record);
+        }
+
+        return Optional.empty();
+    }
+
+    public boolean delete(String firstName, String lastName) {
+        return data.getMedicalrecords().removeIf(
+                mr -> mr.getFirstName().equals(firstName)
+                        && mr.getLastName().equals(lastName));
+    }
+
+    private void updateMedicalRecordFields(MedicalRecord existing, MedicalRecord updated) {
+        // Le prénom et nom ne changent pas (identifiant unique)
+        if (updated.getBirthdate() != null) {
+            existing.setBirthdate(updated.getBirthdate());
+        }
+        if (updated.getMedications() != null) {
+            existing.setMedications(updated.getMedications());
+        }
+        if (updated.getAllergies() != null) {
+            existing.setAllergies(updated.getAllergies());
+        }
+    }
+
 }
