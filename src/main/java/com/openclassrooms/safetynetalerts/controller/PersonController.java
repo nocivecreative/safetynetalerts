@@ -61,13 +61,21 @@ public class PersonController {
 
     @PostMapping("/person")
     public ResponseEntity<Void> addPerson(@RequestBody Person person) {
+        logger.debug("[CALL] POST person -> Adding person {} {}",
+                person.getFirstName(), person.getLastName());
         personService.addPerson(person);
+        logger.debug("[RESPONSE] POST person -> Person successfully added : {} {}",
+                person.getFirstName(), person.getLastName());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/person")
     public ResponseEntity<Void> updatePerson(@RequestBody Person person) {
+        logger.debug("[CALL] PUT person -> Update person {} {}",
+                person.getFirstName(), person.getLastName());
         personService.updatePerson(person);
+        logger.debug("[RESPONSE] PUT person -> person successfully updated {} {}",
+                person.getFirstName(), person.getLastName());
         return ResponseEntity.ok().build();
     }
 
@@ -75,8 +83,11 @@ public class PersonController {
     public ResponseEntity<Void> deletePerson(
             @RequestParam String firstName,
             @RequestParam String lastName) {
-
+        logger.debug("[CALL] DELETE person -> deleting person {} {}",
+                firstName, lastName);
         personService.deletePerson(firstName, lastName);
+        logger.debug("[RESPONSE] DELETE person -> person successfully deleted {} {}",
+                firstName, lastName);
         return ResponseEntity.noContent().build();
     }
 
