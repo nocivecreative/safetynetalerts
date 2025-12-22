@@ -11,9 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResponseDTO;
-import com.openclassrooms.safetynetalerts.dto.childalert.ChildInfoDTO;
-import com.openclassrooms.safetynetalerts.dto.childalert.HouseholdMemberDTO;
+import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResult;
 import com.openclassrooms.safetynetalerts.dto.commons.MedicalHistoryDTO;
 import com.openclassrooms.safetynetalerts.dto.communityemail.CommunityEmailResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResidentDTO;
@@ -46,19 +44,22 @@ public class PersonService {
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
 
+    @Autowired
+    private Utils utils;
+
     /**
      * Récupère une liste des enfants habitants à une adresse donnée.
      * 
      * @param address Adresse
      * @return Liste d'enfants
      */
-    public ChildAlertResponseDTO getChildrenLivingAtAdress(String address) {
+    public ChildAlertResult getPersonByAddress(String address) {
         logger.debug("[SERVICE] looking for perons living at address={}", address);
 
         // ataFile data = dataRepo.loadData();
 
-        List<ChildInfoDTO> children = new ArrayList<>();
-        List<HouseholdMemberDTO> householdMembers = new ArrayList<>();
+        List<Person> children = new ArrayList<>();
+        List<Person> householdMembers = new ArrayList<>();
 
         // Récupérer la liste des personnes vivant à cette adresse
         List<Person> personLivingIn = personRepository.findByAddress(address);
@@ -68,33 +69,18 @@ public class PersonService {
                 address);
         for (Person person : personLivingIn) {
 
-            int age = Utils.calculateAge(person, medicalRecordRepository);
+            int age = utils.calculateAge(person);
             if (age <= 18) {
                 // Créer et ajouter un ChildInfoDTO
-                children.add(new ChildInfoDTO(
-                        person.getFirstName(),
-                        person.getLastName(),
-                        age,
-                        householdMembers));
+                children.add(person);
             } else {
                 // Créer et ajouter un HouseholdMemberDTO
-                householdMembers.add(new HouseholdMemberDTO(
-                        person.getFirstName(),
-                        person.getLastName()));
+                householdMembers.add(person);
             }
 
         }
 
-        // TODO : inclure dans prez
-        // Récupère les dossiers médicaux des personnes vivant à l'adresse donnée (NON
-        // car complexité O(N*M))
-        /*
-         * List<MedicalRecord> personMedicalRecords = data.getMedicalrecords().stream()
-         * .filter(mr -> mr.getFirstName().equals("John"))
-         * .toList();
-         */
-
-        return new ChildAlertResponseDTO(children);
+        return new ChildAlertResult(children, householdMembers);
     }
 
     /**
@@ -118,7 +104,7 @@ public class PersonService {
 
         List<FireAddressResidentDTO> personFireList = new ArrayList<>();
         for (Person person : personLivingIn) {
-            int age = Utils.calculateAge(person, medicalRecordRepository);
+            int age = utils.calculateAge(person);
 
             Optional<MedicalRecord> medicalRecordOpt = medicalRecordRepository.findByFirstNameAndLastName(
                     person.getFirstName(),
@@ -189,7 +175,7 @@ public class PersonService {
                         .map(MedicalRecord::getAllergies)
                         .orElse(Collections.emptyList());
 
-                int age = Utils.calculateAge(person, medicalRecordRepository);
+                int age = utils.calculateAge(person);
 
                 // Créer le DTO de l'historique médical
                 MedicalHistoryDTO medicalHistory = new MedicalHistoryDTO(
@@ -244,7 +230,7 @@ public class PersonService {
                     .orElse(Collections.emptyList());
 
             int age = medicalRecordOpt.isPresent()
-                    ? Utils.calculateAge(person, medicalRecordRepository)
+                    ? utils.calculateAge(person)
                     : -1;
 
             // Créer le DTO de l'historique médical

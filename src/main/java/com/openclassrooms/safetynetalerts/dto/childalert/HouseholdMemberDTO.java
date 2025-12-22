@@ -1,19 +1,13 @@
 package com.openclassrooms.safetynetalerts.dto.childalert;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
+@RequiredArgsConstructor
 public class HouseholdMemberDTO {
 
-    private String firstName;
-    private String lastName;
-
-    public HouseholdMemberDTO() {
-    }
-
-    public HouseholdMemberDTO(String firstName, String lastName) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-    }
+    private final String firstName;
+    private final String lastName;
 
 }

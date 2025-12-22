@@ -5,21 +5,25 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.repository.MedicalRecordRepository;
 
-@Configuration
+@Component
 public class Utils {
-    // private static final Logger logger = LoggerFactory.getLogger(Utils.class);
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 
-    public static int calculateAge(Person person, MedicalRecordRepository repo) {
-        // logger.debug("[UTILS] Age computing for :{},{}", person.getFirstName(),
-        // person.getLastName());
-        Optional<MedicalRecord> record = repo.findByFirstNameAndLastName(
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    private final MedicalRecordRepository medicalRepo;
+
+    public Utils(MedicalRecordRepository medicalRepo) {
+        this.medicalRepo = medicalRepo;
+    }
+
+    public int calculateAge(Person person) {
+
+        Optional<MedicalRecord> record = medicalRepo.findByFirstNameAndLastName(
                 person.getFirstName(),
                 person.getLastName());
 

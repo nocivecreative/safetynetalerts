@@ -3,19 +3,17 @@ package com.openclassrooms.safetynetalerts.service;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.openclassrooms.safetynetalerts.dto.firestation.FirestationCoverageResponseDTO;
-import com.openclassrooms.safetynetalerts.dto.firestation.FirestationResidentDTO;
-import com.openclassrooms.safetynetalerts.dto.phonealert.PhoneAlertResponseDTO;
+import com.openclassrooms.safetynetalerts.dto.firestation.FirestationCoverageResult;
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
-import com.openclassrooms.safetynetalerts.repository.MedicalRecordRepository;
 import com.openclassrooms.safetynetalerts.repository.PersonRepository;
 import com.openclassrooms.safetynetalerts.utils.Utils;
 
@@ -33,7 +31,7 @@ public class FirestationService {
     private PersonRepository personRepository;
 
     @Autowired
-    private MedicalRecordRepository medicalRecordRepository;
+    private Utils utils;
 
     /**
      * Récupère une liste de personnes couvertes par une caserne
@@ -41,40 +39,28 @@ public class FirestationService {
      * @param stationNumber Numéro de la caserne
      * @return Une liste de peronnes
      */
-    public FirestationCoverageResponseDTO getPersonsCoveredByStation(int stationNumber) {
-        logger.debug("[SERVICE] Recherche des peronnes couvertes par la station={}", stationNumber);
+    public FirestationCoverageResult getCoverageByStation(int stationNumber) {
+        logger.debug("[SERVICE] Recherche des personnes couvertes par la station={}", stationNumber);
 
-        // Récupérer les adresses couvertes par la caserne
-        List<String> coveredAddresses = firestationRepository.findAddressesByStation(stationNumber);
+        List<String> addresses = firestationRepository.findAddressesByStation(stationNumber);
 
-        // Récupére les personnes à ces adresses
-        List<Person> coveredPersons = coveredAddresses.stream()
+        List<Person> persons = addresses.stream()
                 .flatMap(address -> personRepository.findByAddress(address).stream())
                 .toList();
 
-        // Mapper vers DTO
-        List<FirestationResidentDTO> personInfos = coveredPersons.stream()
-                .map(person -> new FirestationResidentDTO(
-                        person.getFirstName(),
-                        person.getLastName(),
-                        person.getAddress(),
-                        person.getPhone()))
-                .toList();
-
-        // Calculer adultes et enfants
         int adultCount = 0;
         int childCount = 0;
 
-        logger.debug("[SERVICE] Début du calcul de l'age des personnes couvertes par la station={}", stationNumber);
-        for (Person person : coveredPersons) {
-            int age = Utils.calculateAge(person, medicalRecordRepository);
+        for (Person person : persons) {
+            int age = utils.calculateAge(person);
             if (age <= 18) {
                 childCount++;
             } else {
                 adultCount++;
             }
         }
-        return new FirestationCoverageResponseDTO(personInfos, adultCount, childCount);
+
+        return new FirestationCoverageResult(persons, adultCount, childCount);
     }
 
     /**
@@ -84,25 +70,15 @@ public class FirestationService {
      * @param stationNumber Numéro de la caserne
      * @return Set de numéros de téléphone uniques
      */
-    public PhoneAlertResponseDTO getPhoneOfPersonsCoveredByStation(int stationNumber) {
-        logger.debug("[SERVICE] looking for phons of persons covered by stationNumber={}", stationNumber);
+    public Set<String> getPhonesByStation(int stationNumber) {
+        logger.debug("[SERVICE] Recherche des téléphones pour la station={}", stationNumber);
 
-        // Récupérer les adresses couvertes par la caserne
-        List<String> coveredAddresses = firestationRepository.findAddressesByStation(stationNumber);
+        List<String> addresses = firestationRepository.findAddressesByStation(stationNumber);
 
-        // Récupére les personnes à ces adresses
-        List<Person> coveredPersons = coveredAddresses.stream()
+        return addresses.stream()
                 .flatMap(address -> personRepository.findByAddress(address).stream())
-                .toList();
-
-        // Mapper vers DTO
-        Set<String> phoneList = new TreeSet<>();
-        for (Person person : coveredPersons) {
-            String phoneNumber = person.getPhone();
-            phoneList.add(phoneNumber);
-        }
-
-        return new PhoneAlertResponseDTO(phoneList);
+                .map(Person::getPhone)
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     /**
