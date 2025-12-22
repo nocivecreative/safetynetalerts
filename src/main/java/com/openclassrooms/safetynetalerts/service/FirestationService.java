@@ -35,6 +35,12 @@ public class FirestationService {
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
 
+    /**
+     * Récupère une liste de personnes couvertes par une caserne
+     * 
+     * @param stationNumber Numéro de la caserne
+     * @return Une liste de peronnes
+     */
     public FirestationCoverageResponseDTO getPersonsCoveredByStation(int stationNumber) {
         logger.debug("[SERVICE] Recherche des peronnes couvertes par la station={}", stationNumber);
 
@@ -71,10 +77,15 @@ public class FirestationService {
         return new FirestationCoverageResponseDTO(personInfos, adultCount, childCount);
     }
 
+    /**
+     * Récupère un set de numéros de téléphones des personnes couvertes par une
+     * caserne
+     * 
+     * @param stationNumber Numéro de la caserne
+     * @return Set de numéros de téléphone uniques
+     */
     public PhoneAlertResponseDTO getPhoneOfPersonsCoveredByStation(int stationNumber) {
         logger.debug("[SERVICE] looking for phons of persons covered by stationNumber={}", stationNumber);
-
-        // DataFile data = dataRepo.loadData();
 
         // Récupérer les adresses couvertes par la caserne
         List<String> coveredAddresses = firestationRepository.findAddressesByStation(stationNumber);
@@ -94,13 +105,29 @@ public class FirestationService {
         return new PhoneAlertResponseDTO(phoneList);
     }
 
+    /**
+     * Ajout d'un mapping numéro de caserne/adresse
+     * 
+     * @param firestation Caserne
+     * @throws IllegalArgumentException Si l'adresse de la caserne ou le numéro
+     *                                  existe déjà
+     */
     public void addMapping(Firestation firestation) {
         if (firestationRepository.existsByAddress(firestation.getAddress())) {
             throw new IllegalArgumentException("L'adresse existe déjà");
         }
+        if (firestationRepository.existsByStation(firestation.getStation())) {
+            throw new IllegalArgumentException("Le numéro de la caserne existe déjà");
+        }
         firestationRepository.addFirestation(firestation);
     }
 
+    /**
+     * Met à jour le mapping numéro de caserne/adresse
+     * 
+     * @param firestation Caserne
+     * @throws IllegalArgumentException Si l'adresse n'est pas trouvée
+     */
     public void updateMapping(Firestation firestation) {
         if (!firestationRepository.existsByAddress(firestation.getAddress())) {
             throw new IllegalArgumentException("Adresse non trouvée");
@@ -108,6 +135,15 @@ public class FirestationService {
         firestationRepository.updateFirestation(firestation);
     }
 
+    /**
+     * Supprime le mapping numéro de caserne/adresse
+     * 
+     * @param address Adresse de caserne
+     * @param station Numéro de caserne
+     * @throws IllegalArgumentException Si à la fois l'adresse et le numéro sont
+     *                                  fournis
+     *                                  OU Si ni l'adresse ni le numéro sont fournis
+     */
     public void deleteMapping(String address, Integer station) {
 
         if (address != null && station != null) {

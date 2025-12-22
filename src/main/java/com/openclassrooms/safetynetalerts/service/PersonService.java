@@ -46,6 +46,12 @@ public class PersonService {
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
 
+    /**
+     * Récupère une liste des enfants habitants à une adresse donnée.
+     * 
+     * @param address Adresse
+     * @return Liste d'enfants
+     */
     public ChildAlertResponseDTO getChildrenLivingAtAdress(String address) {
         logger.debug("[SERVICE] looking for perons living at address={}", address);
 
@@ -91,6 +97,13 @@ public class PersonService {
         return new ChildAlertResponseDTO(children);
     }
 
+    /**
+     * Récupère la liste de toutes les personnes habitant à une adresse, leur
+     * historique médical et le numéro de la caserne qui les couvrent
+     * 
+     * @param address Adresse
+     * @return Liste des personnes, leur historique médical et numéro de caserne
+     */
     public FireAddressResponseDTO getPersonAndMedicalHistoryLivingAtAdress(String address) {
 
         logger.debug("[SERVICE] looking for perons living at address={}", address);
@@ -132,6 +145,13 @@ public class PersonService {
         return new FireAddressResponseDTO(personFireList, firestationNumber);
     }
 
+    /**
+     * Récupère la liste de toutes les personnes et leur historique médical qui sont
+     * couvertes par une caserne
+     * 
+     * @param stations Liste de numéros de casernes
+     * @return Liste des personnes couvertes et leur historique médical
+     */
     public FloodStationsResponseDTO getPersonAndMedicalHistoryCoveredByStations(List<Integer> stations) {
 
         logger.debug("[SERVICE] looking for perons covered by stations={}", stations);
@@ -194,6 +214,13 @@ public class PersonService {
         return new FloodStationsResponseDTO(households);
     }
 
+    /**
+     * Récupère la liste de toutes les personnes avec le nom de famille donné, leur
+     * historique médical et le numéro de la caserne qui les couvrent
+     * 
+     * @param lastName Nom de famille
+     * @return Liste des personnes et de leur historique médical
+     */
     public PersonInfoResponseDTO getPersonInfosAndMedicalHistoryByLastName(String lastName) {
         logger.debug("[SERVICE] looking for perons infos and medical history for lastname={}", lastName);
 
@@ -237,13 +264,23 @@ public class PersonService {
         return new PersonInfoResponseDTO(personInfolastNameDTOs);
     }
 
+    /**
+     * @param city Ville
+     * @return Set des adresse mails des personnes habitant dans cette ville
+     */
     public CommunityEmailResponseDTO getEmailsaddressesForCityResidents(String city) {
 
         logger.debug("[SERVICE] looking for emails of resident in city={}", city);
-        // Récupérer toutes les personnes à cette adresse
+        // Récupérer toutes les personnes de cette ville
         return new CommunityEmailResponseDTO(personRepository.findEmailsByCity(city));
     }
 
+    /**
+     * Ajoute une nouvelle personne
+     * 
+     * @param person La personne à ajouter
+     * @throws IllegalArgumentException si la personne existe déjà
+     */
     public void addPerson(Person person) {
 
         if (personRepository.personExists(person.getFirstName(), person.getLastName())) {
@@ -255,6 +292,12 @@ public class PersonService {
         personRepository.addPerson(person);
     }
 
+    /**
+     * Met à jour une personne existante
+     * 
+     * @param person Les nouvelles données de la personne
+     * @throws IllegalArgumentException si la personne n'existe pas
+     */
     public void updatePerson(Person person) {
         if (!personRepository.personExists(person.getFirstName(), person.getLastName())) {
             logger.error("[SERVICE] Person not found: {} {}",
@@ -264,6 +307,13 @@ public class PersonService {
         personRepository.updatePerson(person);
     }
 
+    /**
+     * Supprime une personne
+     * 
+     * @param firstName Prénom
+     * @param lastName  Nom
+     * @throws IllegalArgumentException si la personne n'existe pas
+     */
     public void deletePerson(String firstName, String lastName) {
         if (!personRepository.personExists(firstName, lastName)) {
             logger.error("[SERVICE] Person not found: {} {}",
