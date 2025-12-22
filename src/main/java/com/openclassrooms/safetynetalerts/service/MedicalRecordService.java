@@ -17,13 +17,10 @@ public class MedicalRecordService {
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
 
-    /**
-     * Crée un dossier médical
-     * 
-     * @param medicalRecord Dossier médical
-     * @throws IllegalArgumentException Si un dossier médical correspondant au nom
-     *                                  et au prénom donné est trouvé
-     */
+    public Optional<MedicalRecord> getMedicalRecord(String firstName, String lastName) {
+        return medicalRecordRepository.findByFirstNameAndLastName(firstName, lastName);
+    }
+
     public MedicalRecord createMedicalRecord(MedicalRecord medicalRecord) {
         logger.info("Creating medical record: {} {}",
                 medicalRecord.getFirstName(), medicalRecord.getLastName());
@@ -48,17 +45,6 @@ public class MedicalRecordService {
         return savedRecord;
     }
 
-    /**
-     * Met à jour un dossier médical à partir d'un nom/prénom
-     * 
-     * @param firstName     Prénom
-     * @param lastName      Nom
-     * @param medicalRecord Dossier médical
-     * 
-     * @throws IllegalArgumentException Si aucun dossier médical correspondant au
-     *                                  nom
-     *                                  et au prénom donné n'est trouvé
-     */
     public MedicalRecord updateMedicalRecord(String firstName, String lastName,
             MedicalRecord medicalRecord) {
         logger.info("Updating medical record: {} {}", firstName, lastName);
@@ -77,17 +63,6 @@ public class MedicalRecordService {
         return updatedRecord.get();
     }
 
-    /**
-     * 
-     * Supprime un dossier médical à partir d'un nom/prénom
-     * 
-     * @param firstName Prénom
-     * @param lastName  Nom
-     * 
-     * @throws IllegalArgumentException Si aucun dossier médical correspondant au
-     *                                  nom
-     *                                  et au prénom donné n'est trouvé
-     */
     public void deleteMedicalRecord(String firstName, String lastName) {
         logger.info("Deleting medical record: {} {}", firstName, lastName);
 

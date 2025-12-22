@@ -13,14 +13,9 @@ import org.springframework.stereotype.Service;
 
 import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResult;
 import com.openclassrooms.safetynetalerts.dto.commons.MedicalHistoryDTO;
-import com.openclassrooms.safetynetalerts.dto.communityemail.CommunityEmailResponseDTO;
-import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResidentDTO;
-import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodHouseholdDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodResidentDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationsResponseDTO;
-import com.openclassrooms.safetynetalerts.dto.personinfo.PersonInfoResponseDTO;
-import com.openclassrooms.safetynetalerts.dto.personinfo.PersonMedicalProfileDTO;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
@@ -90,46 +85,51 @@ public class PersonService {
      * @param address Adresse
      * @return Liste des personnes, leur historique médical et numéro de caserne
      */
-    public FireAddressResponseDTO getPersonAndMedicalHistoryLivingAtAdress(String address) {
-
-        logger.debug("[SERVICE] looking for perons living at address={}", address);
-
-        // Récupérer la liste des enfants vivant à cette adresse
-        List<Person> personLivingIn = personRepository.findByAddress(address);
-
-        // Récupère le numéro de la station qui couvre cette adresse
-        Integer firestationNumber = firestationRepository
-                .findStationByAddress(address)
-                .orElse(-1); // TODO : Voir si throw error à la place de -1
-
-        List<FireAddressResidentDTO> personFireList = new ArrayList<>();
-        for (Person person : personLivingIn) {
-            int age = utils.calculateAge(person);
-
-            Optional<MedicalRecord> medicalRecordOpt = medicalRecordRepository.findByFirstNameAndLastName(
-                    person.getFirstName(),
-                    person.getLastName());
-
-            List<String> medications = medicalRecordOpt
-                    .map(MedicalRecord::getMedications)
-                    .orElse(Collections.emptyList());
-
-            List<String> allergies = medicalRecordOpt
-                    .map(MedicalRecord::getAllergies)
-                    .orElse(Collections.emptyList());
-
-            MedicalHistoryDTO medicalHistory = new MedicalHistoryDTO(medications, allergies);
-
-            FireAddressResidentDTO personFire = new FireAddressResidentDTO(
-                    person.getLastName(),
-                    person.getPhone(),
-                    medicalHistory,
-                    age);
-
-            personFireList.add(personFire);
-        }
-        return new FireAddressResponseDTO(personFireList, firestationNumber);
-    }
+    /*
+     * public FireAddressResponseDTO getPersonAndMedicalHistoryLivingAtAdress(String
+     * address) {
+     * 
+     * logger.debug("[SERVICE] looking for perons living at address={}", address);
+     * 
+     * // Récupérer la liste des enfants vivant à cette adresse
+     * List<Person> personLivingIn = personRepository.findByAddress(address);
+     * 
+     * // Récupère le numéro de la station qui couvre cette adresse
+     * Integer firestationNumber = firestationRepository
+     * .findStationByAddress(address)
+     * .orElse(-1); // TODO : Voir si throw error à la place de -1
+     * 
+     * List<FireAddressResidentDTO> personFireList = new ArrayList<>();
+     * for (Person person : personLivingIn) {
+     * int age = utils.calculateAge(person);
+     * 
+     * Optional<MedicalRecord> medicalRecordOpt =
+     * medicalRecordRepository.findByFirstNameAndLastName(
+     * person.getFirstName(),
+     * person.getLastName());
+     * 
+     * List<String> medications = medicalRecordOpt
+     * .map(MedicalRecord::getMedications)
+     * .orElse(Collections.emptyList());
+     * 
+     * List<String> allergies = medicalRecordOpt
+     * .map(MedicalRecord::getAllergies)
+     * .orElse(Collections.emptyList());
+     * 
+     * MedicalHistoryDTO medicalHistory = new MedicalHistoryDTO(medications,
+     * allergies);
+     * 
+     * FireAddressResidentDTO personFire = new FireAddressResidentDTO(
+     * person.getLastName(),
+     * person.getPhone(),
+     * medicalHistory,
+     * age);
+     * 
+     * personFireList.add(personFire);
+     * }
+     * return new FireAddressResponseDTO(personFireList, firestationNumber);
+     * }
+     */
 
     /**
      * Récupère la liste de toutes les personnes et leur historique médical qui sont
@@ -207,58 +207,79 @@ public class PersonService {
      * @param lastName Nom de famille
      * @return Liste des personnes et de leur historique médical
      */
-    public PersonInfoResponseDTO getPersonInfosAndMedicalHistoryByLastName(String lastName) {
-        logger.debug("[SERVICE] looking for perons infos and medical history for lastname={}", lastName);
-
-        List<PersonMedicalProfileDTO> personInfolastNameDTOs = new ArrayList<>();
-
-        // Récupérer toutes les personnes avec ce nom de famille
-        List<Person> personsAtAddress = personRepository.findByLastName(lastName);
-
-        for (Person person : personsAtAddress) {
-
-            // Récupérer le MedicalRecord
-            Optional<MedicalRecord> medicalRecordOpt = medicalRecordRepository
-                    .findByFirstNameAndLastName(person.getFirstName(), person.getLastName());
-            // Extraire les informations du medical record
-            List<String> medications = medicalRecordOpt
-                    .map(MedicalRecord::getMedications)
-                    .orElse(Collections.emptyList());
-
-            List<String> allergies = medicalRecordOpt
-                    .map(MedicalRecord::getAllergies)
-                    .orElse(Collections.emptyList());
-
-            int age = medicalRecordOpt.isPresent()
-                    ? utils.calculateAge(person)
-                    : -1;
-
-            // Créer le DTO de l'historique médical
-            MedicalHistoryDTO medicalHistory = new MedicalHistoryDTO(
-                    medications,
-                    allergies);
-
-            PersonMedicalProfileDTO personInfolastNameDTO = new PersonMedicalProfileDTO(
-                    person.getLastName(),
-                    person.getAddress(),
-                    age, person.getEmail(),
-                    medicalHistory);
-
-            personInfolastNameDTOs.add(personInfolastNameDTO);
-        }
-
-        return new PersonInfoResponseDTO(personInfolastNameDTOs);
-    }
+    /*
+     * public PersonInfoResponseDTO getPersonInfosAndMedicalHistoryByLastName(String
+     * lastName) {
+     * logger.
+     * debug("[SERVICE] looking for perons infos and medical history for lastname={}"
+     * , lastName);
+     * 
+     * List<PersonMedicalProfileDTO> personInfolastNameDTOs = new ArrayList<>();
+     * 
+     * // Récupérer toutes les personnes avec ce nom de famille
+     * List<Person> personsAtAddress = personRepository.findByLastName(lastName);
+     * 
+     * for (Person person : personsAtAddress) {
+     * 
+     * // Récupérer le MedicalRecord
+     * Optional<MedicalRecord> medicalRecordOpt = medicalRecordRepository
+     * .findByFirstNameAndLastName(person.getFirstName(), person.getLastName());
+     * // Extraire les informations du medical record
+     * List<String> medications = medicalRecordOpt
+     * .map(MedicalRecord::getMedications)
+     * .orElse(Collections.emptyList());
+     * 
+     * List<String> allergies = medicalRecordOpt
+     * .map(MedicalRecord::getAllergies)
+     * .orElse(Collections.emptyList());
+     * 
+     * int age = medicalRecordOpt.isPresent()
+     * ? utils.calculateAge(person)
+     * : -1;
+     * 
+     * // Créer le DTO de l'historique médical
+     * MedicalHistoryDTO medicalHistory = new MedicalHistoryDTO(
+     * medications,
+     * allergies);
+     * 
+     * PersonMedicalProfileDTO personInfolastNameDTO = new PersonMedicalProfileDTO(
+     * person.getLastName(),
+     * person.getAddress(),
+     * age, person.getEmail(),
+     * medicalHistory);
+     * 
+     * personInfolastNameDTOs.add(personInfolastNameDTO);
+     * }
+     * 
+     * return new PersonInfoResponseDTO(personInfolastNameDTOs);
+     * }
+     */
 
     /**
      * @param city Ville
      * @return Set des adresse mails des personnes habitant dans cette ville
      */
-    public CommunityEmailResponseDTO getEmailsaddressesForCityResidents(String city) {
+    /*
+     * public CommunityEmailResponseDTO getEmailsaddressesForCityResidents(String
+     * city) {
+     * 
+     * logger.debug("[SERVICE] looking for emails of resident in city={}", city);
+     * private communityEmails = new LinkedHashSet<>;
+     * // Récupérer toutes les personnes de cette ville
+     * return new
+     * CommunityEmailResponseDTO(personRepository.findEmailsByCity(city));
+     * }
+     */
+    public List<Person> getPersonsByLastName(String lastName) {
+        return personRepository.findByLastName(lastName);
+    }
 
-        logger.debug("[SERVICE] looking for emails of resident in city={}", city);
-        // Récupérer toutes les personnes de cette ville
-        return new CommunityEmailResponseDTO(personRepository.findEmailsByCity(city));
+    public List<Person> getPersonsByAddress(String address) {
+        return personRepository.findByAddress(address);
+    }
+
+    public Set<String> getEmailsByCity(String city) {
+        return personRepository.findEmailsByCity(city);
     }
 
     /**

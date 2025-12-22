@@ -1,5 +1,8 @@
 package com.openclassrooms.safetynetalerts.controller;
 
+import java.util.List;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +16,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.openclassrooms.safetynetalerts.PersonProfile;
+import com.openclassrooms.safetynetalerts.dto.commons.MedicalHistoryDTO;
 import com.openclassrooms.safetynetalerts.dto.communityemail.CommunityEmailResponseDTO;
+import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResidentDTO;
 import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.personinfo.PersonInfoResponseDTO;
+import com.openclassrooms.safetynetalerts.dto.personinfo.PersonMedicalProfileDTO;
 import com.openclassrooms.safetynetalerts.model.Person;
+import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
+import com.openclassrooms.safetynetalerts.service.PersonProfileService;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 
 @RestController
@@ -26,15 +35,33 @@ public class PersonController {
         @Autowired
         PersonService personService;
 
+        @Autowired
+        FirestationRepository firestationRepository;
+
+        @Autowired
+        private PersonProfileService personProfileService;
+
         @GetMapping("/personInfolastName")
         public ResponseEntity<PersonInfoResponseDTO> getPersonsByLastName(
-                        @RequestParam("lastName") String lastName) { // TODO ne doit pas prendre le param lastName=
+                        @RequestParam("lastName") String lastName) {
 
                 logger.info("[CALL] GET personInfolastName?lastName={}", lastName);
-                PersonInfoResponseDTO result = personService.getPersonInfosAndMedicalHistoryByLastName(lastName);
+
+                List<PersonProfile> profiles = personProfileService.getProfilesByLastName(lastName);
+
+                List<PersonMedicalProfileDTO> result = profiles.stream()
+                                .map(profile -> new PersonMedicalProfileDTO(
+                                                profile.getPerson().getLastName(),
+                                                profile.getPerson().getAddress(),
+                                                profile.getAge(),
+                                                profile.getPerson().getEmail(),
+                                                new MedicalHistoryDTO(
+                                                                profile.getMedications(),
+                                                                profile.getAllergies())))
+                                .toList();
 
                 logger.info("[RESPONSE] GET personInfolastName?lastName={} -> SUCCESS", lastName);
-                return ResponseEntity.ok(result);
+                return ResponseEntity.ok(new PersonInfoResponseDTO(result));
         }
 
         @GetMapping("/fire")
@@ -42,21 +69,33 @@ public class PersonController {
                         @RequestParam("address") String address) {
 
                 logger.info("[CALL] GET fire?address={}", address);
-                FireAddressResponseDTO result = personService.getPersonAndMedicalHistoryLivingAtAdress(address);
 
-                logger.info("[RESPONSE] GET fire?address={} -> SUCCEESS", address);
-                return ResponseEntity.ok(result);
+                List<PersonProfile> profiles = personProfileService.getProfilesByAddress(address);
+
+                int stationNumber = firestationRepository
+                                .findStationByAddress(address)
+                                .orElse(-1);
+
+                List<FireAddressResidentDTO> residents = profiles.stream()
+                                .map(profile -> new FireAddressResidentDTO(
+                                                profile.getPerson().getLastName(),
+                                                profile.getPerson().getPhone(),
+                                                new MedicalHistoryDTO(
+                                                                profile.getMedications(),
+                                                                profile.getAllergies()),
+                                                profile.getAge()))
+                                .toList();
+
+                logger.info("[RESPONSE] GET fire?address={} -> SUCCESS", address);
+                return ResponseEntity.ok(new FireAddressResponseDTO(residents, stationNumber));
         }
 
         @GetMapping("/communityEmail")
         public ResponseEntity<CommunityEmailResponseDTO> getEmailsByCity(
                         @RequestParam("city") String city) {
 
-                logger.info("[CALL] GET personInfolastName?lastName={}", city);
-                CommunityEmailResponseDTO result = personService.getEmailsaddressesForCityResidents(city);
-
-                logger.info("[RESPONSE] GET personInfolastName?lastName={} -> SUCCESS", city);
-                return ResponseEntity.ok(result);
+                Set<String> emails = personService.getEmailsByCity(city);
+                return ResponseEntity.ok(new CommunityEmailResponseDTO(emails));
         }
 
         @PostMapping("/person")
