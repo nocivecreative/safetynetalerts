@@ -1,9 +1,7 @@
 package com.openclassrooms.safetynetalerts.service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -12,14 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResult;
-import com.openclassrooms.safetynetalerts.dto.commons.MedicalHistoryDTO;
-import com.openclassrooms.safetynetalerts.dto.floodstations.FloodHouseholdDTO;
-import com.openclassrooms.safetynetalerts.dto.floodstations.FloodResidentDTO;
-import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationsResponseDTO;
-import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
-import com.openclassrooms.safetynetalerts.repository.MedicalRecordRepository;
 import com.openclassrooms.safetynetalerts.repository.PersonRepository;
 import com.openclassrooms.safetynetalerts.utils.Utils;
 
@@ -35,9 +27,6 @@ public class PersonService {
 
     @Autowired
     private PersonRepository personRepository;
-
-    @Autowired
-    private MedicalRecordRepository medicalRecordRepository;
 
     @Autowired
     private Utils utils;
@@ -138,66 +127,89 @@ public class PersonService {
      * @param stations Liste de numéros de casernes
      * @return Liste des personnes couvertes et leur historique médical
      */
-    public FloodStationsResponseDTO getPersonAndMedicalHistoryCoveredByStations(List<Integer> stations) {
+    /*
+     * public FloodStationsResponseDTO
+     * getPersonAndMedicalHistoryCoveredByStations(List<Integer> stations) {
+     * 
+     * logger.debug("[SERVICE] looking for perons covered by stations={}",
+     * stations);
+     * 
+     * List<FloodHouseholdDTO> households = new ArrayList<>();
+     * 
+     * // Récupére toutes les adresses couvertes par les stations
+     * Set<String> addresses =
+     * firestationRepository.findAddressesByStations(stations);
+     * 
+     * // Pour chaque adresse, créer une liste des personnes
+     * for (String address : addresses) {
+     * 
+     * List<FloodResidentDTO> floodPersonInfoList = new ArrayList<>();
+     * 
+     * // Récupérer toutes les personnes à cette adresse
+     * List<Person> personsAtAddress = personRepository.findAll().stream()
+     * .filter(p -> p.getAddress().equals(address))
+     * .toList();
+     * 
+     * // Pour chaque personne, créer un FloodPersonInfoDTO
+     * for (Person person : personsAtAddress) {
+     * 
+     * // Récupérer le MedicalRecord UNE SEULE FOIS
+     * Optional<MedicalRecord> medicalRecordOpt = medicalRecordRepository
+     * .findByFirstNameAndLastName(
+     * person.getFirstName(),
+     * person.getLastName());
+     * 
+     * // Extraire les informations du medical record
+     * List<String> medications = medicalRecordOpt
+     * .map(MedicalRecord::getMedications)
+     * .orElse(Collections.emptyList());
+     * 
+     * List<String> allergies = medicalRecordOpt
+     * .map(MedicalRecord::getAllergies)
+     * .orElse(Collections.emptyList());
+     * 
+     * int age = utils.calculateAge(person);
+     * 
+     * // Créer le DTO de l'historique médical
+     * MedicalHistoryDTO medicalHistory = new MedicalHistoryDTO(
+     * medications,
+     * allergies);
+     * 
+     * // Créer le DTO de la personne avec toutes les infos
+     * FloodResidentDTO personInfo = new FloodResidentDTO(
+     * person.getLastName(),
+     * person.getPhone(),
+     * age,
+     * medicalHistory);
+     * 
+     * floodPersonInfoList.add(personInfo);
+     * }
+     * 
+     * // Créer un floodHouseDTO pour cette adresse
+     * FloodHouseholdDTO floodHouseDTO = new FloodHouseholdDTO(address,
+     * floodPersonInfoList);
+     * households.add(floodHouseDTO);
+     * }
+     * 
+     * return new FloodStationsResponseDTO(households);
+     * }
+     */
 
+    public Person getPersonsByStations(List<Integer> stations) {
         logger.debug("[SERVICE] looking for perons covered by stations={}", stations);
-
-        List<FloodHouseholdDTO> households = new ArrayList<>();
 
         // Récupére toutes les adresses couvertes par les stations
         Set<String> addresses = firestationRepository.findAddressesByStations(stations);
 
+        List<List<Person>> persons = new ArrayList<>();
         // Pour chaque adresse, créer une liste des personnes
         for (String address : addresses) {
 
-            List<FloodResidentDTO> floodPersonInfoList = new ArrayList<>();
+            persons.add(personRepository.findByAddress(address));
 
-            // Récupérer toutes les personnes à cette adresse
-            List<Person> personsAtAddress = personRepository.findAll().stream()
-                    .filter(p -> p.getAddress().equals(address))
-                    .toList();
-
-            // Pour chaque personne, créer un FloodPersonInfoDTO
-            for (Person person : personsAtAddress) {
-
-                // Récupérer le MedicalRecord UNE SEULE FOIS
-                Optional<MedicalRecord> medicalRecordOpt = medicalRecordRepository
-                        .findByFirstNameAndLastName(
-                                person.getFirstName(),
-                                person.getLastName());
-
-                // Extraire les informations du medical record
-                List<String> medications = medicalRecordOpt
-                        .map(MedicalRecord::getMedications)
-                        .orElse(Collections.emptyList());
-
-                List<String> allergies = medicalRecordOpt
-                        .map(MedicalRecord::getAllergies)
-                        .orElse(Collections.emptyList());
-
-                int age = utils.calculateAge(person);
-
-                // Créer le DTO de l'historique médical
-                MedicalHistoryDTO medicalHistory = new MedicalHistoryDTO(
-                        medications,
-                        allergies);
-
-                // Créer le DTO de la personne avec toutes les infos
-                FloodResidentDTO personInfo = new FloodResidentDTO(
-                        person.getLastName(),
-                        person.getPhone(),
-                        age,
-                        medicalHistory);
-
-                floodPersonInfoList.add(personInfo);
-            }
-
-            // Créer un floodHouseDTO pour cette adresse
-            FloodHouseholdDTO floodHouseDTO = new FloodHouseholdDTO(address, floodPersonInfoList);
-            households.add(floodHouseDTO);
         }
 
-        return new FloodStationsResponseDTO(households);
+        return null;
     }
 
     /**

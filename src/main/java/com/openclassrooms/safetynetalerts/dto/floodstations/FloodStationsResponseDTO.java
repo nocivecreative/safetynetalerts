@@ -7,9 +7,9 @@ import lombok.Data;
 @Data
 public class FloodStationsResponseDTO {
 
-    private List<FloodHouseholdDTO> households;
+    private List<FloodStationHouseholdDTO> households;
 
-    public FloodStationsResponseDTO(List<FloodHouseholdDTO> households) {
+    public FloodStationsResponseDTO(List<FloodStationHouseholdDTO> households) {
         this.households = households;
     }
 
