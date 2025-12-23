@@ -20,7 +20,7 @@ import com.openclassrooms.safetynetalerts.service.FirestationService;
 @RestController
 @RequestMapping("/firestation")
 public class FirestationController {
-    private final Logger logger = LoggerFactory.getLogger(FirestationService.class);
+    private final Logger logger = LoggerFactory.getLogger(FirestationController.class);
 
     @Autowired
     FirestationService firestationService;
