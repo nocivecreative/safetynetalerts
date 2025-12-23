@@ -50,7 +50,7 @@ public class FirestationService {
      * @param stationNumber Numéro de la caserne
      * @return Set de numéros de téléphone uniques
      */
-    public Set<String> getPhonesByStation(int stationNumber) {
+    public Set<String> getPhoneNumbersByStation(int stationNumber) {
         logger.debug("[SERVICE] Recherche des téléphones pour la station={}", stationNumber);
 
         List<String> addresses = firestationRepository.findAddressesByStation(stationNumber);

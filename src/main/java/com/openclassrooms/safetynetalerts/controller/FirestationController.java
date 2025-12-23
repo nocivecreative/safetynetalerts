@@ -34,13 +34,13 @@ public class FirestationController {
         logger.info("[CALL] POST /firestation -> Adding mapping address={}, station={}",
                 firestationDTO.getAddress(), firestationDTO.getStation());
 
-        // Mapper DTO → Entity
+        // Mapper DTO vers Entité
         Firestation firestation = mapDtoToEntity(firestationDTO);
 
         // Appeler le service
         firestationService.addMapping(firestation);
 
-        // Mapper Entity → DTO pour la réponse
+        // Mapper DTO pour la réponse
         FirestationDTO response = mapEntityToDto(firestation);
 
         logger.info("[RESPONSE] POST /firestation -> Mapping created successfully");
@@ -56,13 +56,13 @@ public class FirestationController {
         logger.info("[CALL] PUT /firestation -> Updating mapping address={}, new station={}",
                 firestationDTO.getAddress(), firestationDTO.getStation());
 
-        // Mapper DTO → Entity
+        // Mapper DTO vers Entité
         Firestation firestation = mapDtoToEntity(firestationDTO);
 
         // Appeler le service
         firestationService.updateMapping(firestation);
 
-        // Mapper Entity → DTO pour la réponse
+        // Mapper Entité vers DTO pour la réponse
         FirestationDTO response = mapEntityToDto(firestation);
 
         logger.info("[RESPONSE] PUT /firestation -> Mapping updated successfully");

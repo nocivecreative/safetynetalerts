@@ -45,7 +45,7 @@ public class PersonService {
      */
     public void addPerson(Person person) {
 
-        if (personRepository.personExists(person.getFirstName(), person.getLastName())) {
+        if (personRepository.existsByFirstNameAndLastName(person.getFirstName(), person.getLastName())) {
             logger.error("[SERVICE] Person already exist: {} {}",
                     person.getFirstName(), person.getLastName());
             throw new IllegalArgumentException("Person already exist");
@@ -61,7 +61,7 @@ public class PersonService {
      * @throws IllegalArgumentException si la personne n'existe pas
      */
     public void updatePerson(Person person) {
-        if (!personRepository.personExists(person.getFirstName(), person.getLastName())) {
+        if (!personRepository.existsByFirstNameAndLastName(person.getFirstName(), person.getLastName())) {
             logger.error("[SERVICE] Person not found: {} {}",
                     person.getFirstName(), person.getLastName());
             throw new IllegalArgumentException("Person not found");
@@ -77,7 +77,7 @@ public class PersonService {
      * @throws IllegalArgumentException si la personne n'existe pas
      */
     public void deletePerson(String firstName, String lastName) {
-        if (!personRepository.personExists(firstName, lastName)) {
+        if (!personRepository.existsByFirstNameAndLastName(firstName, lastName)) {
             logger.error("[SERVICE] Person not found: {} {}",
                     firstName, lastName);
             throw new IllegalArgumentException("Person not found");

@@ -47,10 +47,10 @@ public class AlertController {
 
         logger.info("[CALL] GET /firestation?stationNumber={}", stationNumber);
 
-        // 1. Appeler le service pour récupérer les personnes (entités brutes)
+        // 1. Appeler le service pour récupérer les personnes
         List<Person> persons = firestationService.getPersonsCoveredByStation(stationNumber);
 
-        // 2. Calculer les comptages adultes/enfants (logique dans le controller)
+        // 2. Calculer les comptages adultes/enfants
         int adultCount = 0;
         int childCount = 0;
 
@@ -62,7 +62,7 @@ public class AlertController {
             }
         }
 
-        // 3. Mapper les entités vers DTOs (mapping dans le controller)
+        // 3. Mapper les entités vers DTOs
         List<FirestationResidentDTO> residents = persons.stream()
                 .map(p -> new FirestationResidentDTO(
                         p.getFirstName(),
@@ -93,10 +93,10 @@ public class AlertController {
 
         logger.info("[CALL] GET /phoneAlert?firestation={}", firestation);
 
-        // 1. Appeler le service pour récupérer les téléphones
-        Set<String> phones = firestationService.getPhonesByStation(firestation);
+        // 1. Récupérer les téléphones
+        Set<String> phones = firestationService.getPhoneNumbersByStation(firestation);
 
-        // 2. Construire le DTO de réponse (pas de mapping complexe ici)
+        // 2. Construire le DTO de réponse
         PhoneAlertResponseDTO response = new PhoneAlertResponseDTO(phones);
 
         logger.info("[RESPONSE] GET /phoneAlert -> {} numéros uniques", phones.size());
@@ -118,7 +118,7 @@ public class AlertController {
         // 1. Appeler le service pour récupérer toutes les personnes à l'adresse
         List<Person> personsAtAddress = personService.getPersonsByAddress(address);
 
-        // 2. Séparer enfants et adultes (logique dans le controller)
+        // 2. Séparer enfants et adultes
         List<Person> children = new ArrayList<>();
         List<Person> adults = new ArrayList<>();
 
@@ -130,13 +130,13 @@ public class AlertController {
             }
         }
 
-        // 3. Mapper vers DTOs (mapping dans le controller)
-        // D'abord les membres du foyer (pour les inclure dans chaque enfant)
+        // 3. Mapper vers DTOs
+        // Membres du foyer
         List<HouseholdMemberDTO> householdMembers = adults.stream()
                 .map(p -> new HouseholdMemberDTO(p.getFirstName(), p.getLastName()))
                 .toList();
 
-        // Ensuite les enfants avec leur âge
+        // Enfants avec leur âge
         List<ChildInfoDTO> childrenDTOs = children.stream()
                 .map(p -> new ChildInfoDTO(
                         p.getFirstName(),

@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.openclassrooms.safetynetalerts.model.DataFile;
-
 import com.openclassrooms.safetynetalerts.model.Person;
 
 import jakarta.annotation.PostConstruct;
@@ -50,11 +49,13 @@ public class PersonRepository {
                 .toList();
     }
 
-    /* public List<Person> findByCity(String city
-        return data.getPersons().stream()
-                .filter(p -> p.getCity().equals(city))
-                .toList();
-    } */
+    /*
+     * public List<Person> findByCity(String city
+     * return data.getPersons().stream()
+     * .filter(p -> p.getCity().equals(city))
+     * .toList();
+     * }
+     */
 
     public Set<String> findEmailsByCity(String city) {
         return data.getPersons().stream()
@@ -63,7 +64,7 @@ public class PersonRepository {
                 .collect(Collectors.toSet());
     }
 
-    public boolean personExists(String firstName, String lastName) {
+    public boolean existsByFirstNameAndLastName(String firstName, String lastName) {
         return data.getPersons().stream()
                 .anyMatch(p -> p.getFirstName().equals(firstName)
                         && p.getLastName().equals(lastName));
