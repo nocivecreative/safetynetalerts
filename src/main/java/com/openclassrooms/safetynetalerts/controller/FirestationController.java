@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.openclassrooms.safetynetalerts.dto.firestation.FirestationDTO;
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.service.FirestationService;
 
@@ -24,30 +25,86 @@ public class FirestationController {
     @Autowired
     FirestationService firestationService;
 
+    /**
+     * POST /firestation
+     * Ajoute un nouveau mapping caserne/adresse
+     */
     @PostMapping
-    public ResponseEntity<Void> addMapping(@RequestBody Firestation firestation) {
-        logger.info("[CALL] POST firestation -> CREATE station");
+    public ResponseEntity<FirestationDTO> addMapping(@RequestBody FirestationDTO firestationDTO) {
+        logger.info("[CALL] POST /firestation -> Adding mapping address={}, station={}",
+                firestationDTO.getAddress(), firestationDTO.getStation());
+
+        // Mapper DTO → Entity
+        Firestation firestation = mapDtoToEntity(firestationDTO);
+
+        // Appeler le service
         firestationService.addMapping(firestation);
-        logger.info("[RESPONSE] POST firestation -> SUCCESS, station created");
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+
+        // Mapper Entity → DTO pour la réponse
+        FirestationDTO response = mapEntityToDto(firestation);
+
+        logger.info("[RESPONSE] POST /firestation -> Mapping created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * PUT /firestation
+     * Met à jour le numéro de station pour une adresse
+     */
     @PutMapping
-    public ResponseEntity<Void> updateMapping(@RequestBody Firestation firestation) {
-        logger.info("[CALL] PUT firestation -> UPDATE station");
+    public ResponseEntity<FirestationDTO> updateMapping(@RequestBody FirestationDTO firestationDTO) {
+        logger.info("[CALL] PUT /firestation -> Updating mapping address={}, new station={}",
+                firestationDTO.getAddress(), firestationDTO.getStation());
+
+        // Mapper DTO → Entity
+        Firestation firestation = mapDtoToEntity(firestationDTO);
+
+        // Appeler le service
         firestationService.updateMapping(firestation);
-        logger.info("[SUCCESS] PUT firestation -> station updated");
-        return ResponseEntity.ok().build();
+
+        // Mapper Entity → DTO pour la réponse
+        FirestationDTO response = mapEntityToDto(firestation);
+
+        logger.info("[RESPONSE] PUT /firestation -> Mapping updated successfully");
+        return ResponseEntity.ok(response);
     }
 
+    /**
+     * DELETE /firestation?address=<address> OU ?station=<station>
+     * Supprime un mapping (soit par adresse, soit par numéro de station)
+     */
     @DeleteMapping
     public ResponseEntity<Void> deleteMapping(
             @RequestParam(required = false) String address,
             @RequestParam(required = false) Integer station) {
 
-        logger.info("[CALL] PUT firestation -> DELETE station");
+        logger.info("[CALL] DELETE /firestation -> address={}, station={}", address, station);
+
+        // Appeler le service
         firestationService.deleteMapping(address, station);
-        logger.info("[SUCCESS] PUT firestation -> station deleted");
+
+        logger.info("[RESPONSE] DELETE /firestation -> Mapping deleted successfully");
         return ResponseEntity.noContent().build();
+    }
+
+    // --- Méthodes privées de mapping ---
+
+    /**
+     * Mappe un DTO vers une entité Firestation
+     */
+    private Firestation mapDtoToEntity(FirestationDTO dto) {
+        Firestation firestation = new Firestation();
+        firestation.setAddress(dto.getAddress());
+        firestation.setStation(dto.getStation());
+        return firestation;
+    }
+
+    /**
+     * Mappe une entité Firestation vers un DTO
+     */
+    private FirestationDTO mapEntityToDto(Firestation firestation) {
+        return new FirestationDTO(
+                firestation.getAddress(),
+                firestation.getStation());
     }
 }

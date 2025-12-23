@@ -14,7 +14,6 @@ import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
 import com.openclassrooms.safetynetalerts.repository.PersonRepository;
-import com.openclassrooms.safetynetalerts.utils.Utils;
 
 @Service
 public class FirestationService {
@@ -28,9 +27,6 @@ public class FirestationService {
 
     @Autowired
     private PersonRepository personRepository;
-
-    @Autowired
-    private Utils utils;
 
     /**
      * Récupère une liste de personnes couvertes par une caserne

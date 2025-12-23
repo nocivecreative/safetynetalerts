@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.openclassrooms.safetynetalerts.dto.medicalrecord.MedicalRecordDTO;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.service.MedicalRecordService;
 
@@ -24,49 +25,100 @@ public class MedicalRecordController {
     @Autowired
     private MedicalRecordService medicalRecordService;
 
+    /**
+     * POST /medicalRecord
+     * Crée un nouveau dossier médical
+     */
     @PostMapping
-    public ResponseEntity<MedicalRecord> createMedicalRecord(@RequestBody MedicalRecord medicalRecord) {
+    public ResponseEntity<MedicalRecordDTO> createMedicalRecord(
+            @RequestBody MedicalRecordDTO medicalRecordDTO) {
 
-        logger.info("[CALL] POST /medicalRecord - Creating medical record: {} {}",
-                medicalRecord.getFirstName(), medicalRecord.getLastName());
+        logger.info("[CALL] POST /medicalRecord -> Creating medical record for {} {}",
+                medicalRecordDTO.getFirstName(), medicalRecordDTO.getLastName());
 
+        // Mapper DTO → Entity
+        MedicalRecord medicalRecord = mapDtoToEntity(medicalRecordDTO);
+
+        // Appeler le service
         MedicalRecord createdRecord = medicalRecordService.createMedicalRecord(medicalRecord);
 
-        logger.info("[RESPONSE] POST /medicalRecord - Medical record created: {} {}",
-                createdRecord.getFirstName(), createdRecord.getLastName());
+        // Mapper Entity → DTO pour la réponse
+        MedicalRecordDTO response = mapEntityToDto(createdRecord);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdRecord);
+        logger.info("[RESPONSE] POST /medicalRecord -> Medical record created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * PUT /medicalRecord?firstName=<firstName>&lastName=<lastName>
+     * Met à jour un dossier médical existant
+     */
     @PutMapping
-    public ResponseEntity<MedicalRecord> updateMedicalRecord(
+    public ResponseEntity<MedicalRecordDTO> updateMedicalRecord(
             @RequestParam("firstName") String firstName,
             @RequestParam("lastName") String lastName,
-            @RequestBody MedicalRecord medicalRecord) {
+            @RequestBody MedicalRecordDTO medicalRecordDTO) {
 
-        logger.info("[CALL] PUT /medicalRecord?firstName={}&lastName={}", firstName, lastName);
+        logger.info("[CALL] PUT /medicalRecord -> Updating medical record for {} {}",
+                firstName, lastName);
 
+        // Mapper DTO → Entity
+        MedicalRecord medicalRecord = mapDtoToEntity(medicalRecordDTO);
+
+        // Appeler le service
         MedicalRecord updatedRecord = medicalRecordService.updateMedicalRecord(
                 firstName, lastName, medicalRecord);
 
-        logger.info("[RESPONSE] PUT /medicalRecord - Medical record updated: {} {}",
-                updatedRecord.getFirstName(), updatedRecord.getLastName());
+        // Mapper Entity → DTO pour la réponse
+        MedicalRecordDTO response = mapEntityToDto(updatedRecord);
 
-        return ResponseEntity.ok(updatedRecord);
+        logger.info("[RESPONSE] PUT /medicalRecord -> Medical record updated successfully");
+        return ResponseEntity.ok(response);
     }
 
+    /**
+     * DELETE /medicalRecord?firstName=<firstName>&lastName=<lastName>
+     * Supprime un dossier médical
+     */
     @DeleteMapping
     public ResponseEntity<Void> deleteMedicalRecord(
             @RequestParam("firstName") String firstName,
             @RequestParam("lastName") String lastName) {
 
-        logger.info("[CALL] DELETE /medicalRecord?firstName={}&lastName={}", firstName, lastName);
-
-        medicalRecordService.deleteMedicalRecord(firstName, lastName);
-
-        logger.info("[RESPONSE] DELETE /medicalRecord - Medical record deleted: {} {}",
+        logger.info("[CALL] DELETE /medicalRecord -> Deleting medical record for {} {}",
                 firstName, lastName);
 
+        // Appeler le service
+        medicalRecordService.deleteMedicalRecord(firstName, lastName);
+
+        logger.info("[RESPONSE] DELETE /medicalRecord -> Medical record deleted successfully");
         return ResponseEntity.noContent().build();
+    }
+
+    // --- Méthodes privées de mapping ---
+
+    /**
+     * Mappe un DTO vers une entité MedicalRecord
+     */
+    private MedicalRecord mapDtoToEntity(MedicalRecordDTO dto) {
+        MedicalRecord record = new MedicalRecord();
+        record.setFirstName(dto.getFirstName());
+        record.setLastName(dto.getLastName());
+        record.setBirthdate(dto.getBirthdate());
+        record.setMedications(dto.getMedications());
+        record.setAllergies(dto.getAllergies());
+        return record;
+    }
+
+    /**
+     * Mappe une entité MedicalRecord vers un DTO
+     */
+    private MedicalRecordDTO mapEntityToDto(MedicalRecord record) {
+        return new MedicalRecordDTO(
+                record.getFirstName(),
+                record.getLastName(),
+                record.getBirthdate(),
+                record.getMedications(),
+                record.getAllergies());
     }
 }
