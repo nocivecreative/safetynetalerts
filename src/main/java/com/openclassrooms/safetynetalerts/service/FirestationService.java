@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.openclassrooms.safetynetalerts.dto.firestation.FirestationCoverageResult;
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
@@ -39,7 +38,7 @@ public class FirestationService {
      * @param stationNumber Numéro de la caserne
      * @return Une liste de peronnes
      */
-    public FirestationCoverageResult getCoverageByStation(int stationNumber) {
+    public List<Person> getPersonsCoveredByStation(int stationNumber) {
         logger.debug("[SERVICE] Recherche des personnes couvertes par la station={}", stationNumber);
 
         List<String> addresses = firestationRepository.findAddressesByStation(stationNumber);
@@ -48,19 +47,7 @@ public class FirestationService {
                 .flatMap(address -> personRepository.findByAddress(address).stream())
                 .toList();
 
-        int adultCount = 0;
-        int childCount = 0;
-
-        for (Person person : persons) {
-            int age = utils.calculateAge(person);
-            if (age <= 18) {
-                childCount++;
-            } else {
-                adultCount++;
-            }
-        }
-
-        return new FirestationCoverageResult(persons, adultCount, childCount);
+        return persons;
     }
 
     /**

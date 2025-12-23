@@ -1,6 +1,10 @@
 package com.openclassrooms.safetynetalerts.controller;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,47 +15,93 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.openclassrooms.safetynetalerts.HouseholdProfile;
 import com.openclassrooms.safetynetalerts.dto.commons.MedicalHistoryDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodResidentDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationHouseholdDTO;
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationsResponseDTO;
-import com.openclassrooms.safetynetalerts.service.FloodProfileService;
+import com.openclassrooms.safetynetalerts.model.MedicalRecord;
+import com.openclassrooms.safetynetalerts.model.Person;
+import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
+import com.openclassrooms.safetynetalerts.service.MedicalRecordService;
+import com.openclassrooms.safetynetalerts.service.PersonService;
+import com.openclassrooms.safetynetalerts.utils.Utils;
 
+/**
+ * Controller REST pour les alertes inondation (flood)
+ */
 @RestController
 @RequestMapping("/flood")
 public class FloodController {
     private final Logger logger = LoggerFactory.getLogger(FloodController.class);
 
     @Autowired
-    private FloodProfileService floodProfileService;
+    private FirestationRepository firestationRepository;
 
+    @Autowired
+    private PersonService personService;
+
+    @Autowired
+    private MedicalRecordService medicalRecordService;
+
+    @Autowired
+    private Utils utils;
+
+    /**
+     * GET /flood/stations?stations=<stations>
+     * Retourne tous les foyers desservis par les stations données, regroupés par
+     * adresse
+     */
     @GetMapping("/stations")
     public ResponseEntity<FloodStationsResponseDTO> getPersonsByStations(
             @RequestParam("stations") List<Integer> stations) {
 
-        logger.info("[CALL] GET flood/station?stations={}", stations);
+        logger.info("[CALL] GET /flood/stations?stations={}", stations);
 
-        List<HouseholdProfile> households = floodProfileService.getHouseholdsByStations(stations);
+        // 1. Récupérer toutes les adresses couvertes par ces stations
+        Set<String> addresses = firestationRepository.findAddressesByStations(stations);
 
-        List<FloodStationHouseholdDTO> householdDTOs = households.stream()
-                .map(household -> {
-                    List<FloodResidentDTO> residents = household.getResidents().stream()
-                            .map(profile -> new FloodResidentDTO(
-                                    profile.getPerson().getFirstName(),
-                                    profile.getPerson().getPhone(),
-                                    profile.getAge(),
-                                    new MedicalHistoryDTO(
-                                            profile.getMedications(),
-                                            profile.getAllergies())))
-                            .toList();
-                    return new FloodStationHouseholdDTO(household.getAddress(), residents);
-                })
-                .toList();
+        // 2. Pour chaque adresse, récupérer les personnes et construire les DTOs
+        List<FloodStationHouseholdDTO> households = new ArrayList<>();
 
-        FloodStationsResponseDTO response = new FloodStationsResponseDTO(householdDTOs);
+        for (String address : addresses) {
+            // Récupérer les personnes à cette adresse
+            List<Person> personsAtAddress = personService.getPersonsByAddress(address);
 
-        logger.info("[RESPONSE] GET flood/station?stations={} -> SUCCESS", stations);
+            // Mapper vers DTOs (avec infos médicales)
+            List<FloodResidentDTO> residents = new ArrayList<>();
+
+            for (Person person : personsAtAddress) {
+                // Récupérer le dossier médical
+                Optional<MedicalRecord> medicalRecordOpt = medicalRecordService.getMedicalRecord(
+                        person.getFirstName(),
+                        person.getLastName());
+
+                // Extraire medications et allergies
+                List<String> medications = medicalRecordOpt
+                        .map(MedicalRecord::getMedications)
+                        .orElse(Collections.emptyList());
+
+                List<String> allergies = medicalRecordOpt
+                        .map(MedicalRecord::getAllergies)
+                        .orElse(Collections.emptyList());
+
+                // Créer le DTO
+                residents.add(new FloodResidentDTO(
+                        person.getFirstName(),
+                        person.getPhone(),
+                        utils.calculateAge(person),
+                        new MedicalHistoryDTO(medications, allergies)));
+            }
+
+            // Créer le DTO du foyer
+            households.add(new FloodStationHouseholdDTO(address, residents));
+        }
+
+        // 3. Construire le DTO de réponse
+        FloodStationsResponseDTO response = new FloodStationsResponseDTO(households);
+
+        logger.info("[RESPONSE] GET /flood/stations -> {} foyers trouvés", households.size());
+
         return ResponseEntity.ok(response);
     }
 }

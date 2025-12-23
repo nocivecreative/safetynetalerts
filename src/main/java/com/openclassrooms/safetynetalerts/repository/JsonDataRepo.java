@@ -7,7 +7,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Repository;
 
 import com.openclassrooms.safetynetalerts.model.DataFile;
-import com.openclassrooms.safetynetalerts.model.Person;
 
 import jakarta.annotation.PostConstruct;
 import tools.jackson.databind.json.JsonMapper;

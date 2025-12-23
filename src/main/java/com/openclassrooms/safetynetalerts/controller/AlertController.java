@@ -1,5 +1,6 @@
 package com.openclassrooms.safetynetalerts.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -12,13 +13,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResponseDTO;
-import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResult;
 import com.openclassrooms.safetynetalerts.dto.childalert.ChildInfoDTO;
 import com.openclassrooms.safetynetalerts.dto.childalert.HouseholdMemberDTO;
 import com.openclassrooms.safetynetalerts.dto.firestation.FirestationCoverageResponseDTO;
-import com.openclassrooms.safetynetalerts.dto.firestation.FirestationCoverageResult;
 import com.openclassrooms.safetynetalerts.dto.firestation.FirestationResidentDTO;
 import com.openclassrooms.safetynetalerts.dto.phonealert.PhoneAlertResponseDTO;
+import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.service.FirestationService;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 import com.openclassrooms.safetynetalerts.utils.Utils;
@@ -36,15 +36,34 @@ public class AlertController {
     @Autowired
     private Utils utils;
 
+    /**
+     * GET /firestation?stationNumber=<stationNumber>
+     * Retourne les personnes couvertes par une station avec décompte
+     * adultes/enfants
+     */
     @GetMapping("/firestation")
     public ResponseEntity<FirestationCoverageResponseDTO> getPersonsByStation(
             @RequestParam("stationNumber") int stationNumber) {
 
-        logger.info("[CALL] GET firestation?stationNumber={}", stationNumber);
+        logger.info("[CALL] GET /firestation?stationNumber={}", stationNumber);
 
-        FirestationCoverageResult result = firestationService.getCoverageByStation(stationNumber);
+        // 1. Appeler le service pour récupérer les personnes (entités brutes)
+        List<Person> persons = firestationService.getPersonsCoveredByStation(stationNumber);
 
-        List<FirestationResidentDTO> residents = result.getPersons().stream()
+        // 2. Calculer les comptages adultes/enfants (logique dans le controller)
+        int adultCount = 0;
+        int childCount = 0;
+
+        for (Person person : persons) {
+            if (utils.isChild(person)) {
+                childCount++;
+            } else {
+                adultCount++;
+            }
+        }
+
+        // 3. Mapper les entités vers DTOs (mapping dans le controller)
+        List<FirestationResidentDTO> residents = persons.stream()
                 .map(p -> new FirestationResidentDTO(
                         p.getFirstName(),
                         p.getLastName(),
@@ -52,48 +71,86 @@ public class AlertController {
                         p.getPhone()))
                 .toList();
 
+        // 4. Construire le DTO de réponse
         FirestationCoverageResponseDTO response = new FirestationCoverageResponseDTO(
                 residents,
-                result.getAdultCount(),
-                result.getChildCount());
+                adultCount,
+                childCount);
 
-        logger.info("[RESPONSE] GET firestation?stationNumber={} -> SUCCESS", stationNumber);
+        logger.info("[RESPONSE] GET /firestation -> {} résidents ({} adultes, {} enfants)",
+                residents.size(), adultCount, childCount);
+
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * GET /phoneAlert?firestation=<firestation>
+     * Retourne les numéros de téléphone des résidents couverts par une station
+     */
     @GetMapping("/phoneAlert")
     public ResponseEntity<PhoneAlertResponseDTO> getPhoneByStation(
             @RequestParam("firestation") int firestation) {
 
-        logger.info("[CALL] GET phoneAlert?firestation={}", firestation);
+        logger.info("[CALL] GET /phoneAlert?firestation={}", firestation);
 
+        // 1. Appeler le service pour récupérer les téléphones
         Set<String> phones = firestationService.getPhonesByStation(firestation);
 
-        return ResponseEntity.ok(new PhoneAlertResponseDTO(phones));
+        // 2. Construire le DTO de réponse (pas de mapping complexe ici)
+        PhoneAlertResponseDTO response = new PhoneAlertResponseDTO(phones);
+
+        logger.info("[RESPONSE] GET /phoneAlert -> {} numéros uniques", phones.size());
+
+        return ResponseEntity.ok(response);
     }
 
+    /**
+     * GET /childAlert?address=<address>
+     * Retourne la liste des enfants habitant à cette adresse avec les autres
+     * membres du foyer
+     */
     @GetMapping("/childAlert")
-    public ResponseEntity<ChildAlertResponseDTO> getChildrenByAdress(
+    public ResponseEntity<ChildAlertResponseDTO> getChildrenByAddress(
             @RequestParam("address") String address) {
 
-        logger.info("[CALL] GET childAlert?address={}", address);
+        logger.info("[CALL] GET /childAlert?address={}", address);
 
-        ChildAlertResult result = personService.getPersonByAddress(address);
+        // 1. Appeler le service pour récupérer toutes les personnes à l'adresse
+        List<Person> personsAtAddress = personService.getPersonsByAddress(address);
 
-        List<HouseholdMemberDTO> household = result.getAdults().stream()
+        // 2. Séparer enfants et adultes (logique dans le controller)
+        List<Person> children = new ArrayList<>();
+        List<Person> adults = new ArrayList<>();
+
+        for (Person person : personsAtAddress) {
+            if (utils.isChild(person)) {
+                children.add(person);
+            } else {
+                adults.add(person);
+            }
+        }
+
+        // 3. Mapper vers DTOs (mapping dans le controller)
+        // D'abord les membres du foyer (pour les inclure dans chaque enfant)
+        List<HouseholdMemberDTO> householdMembers = adults.stream()
                 .map(p -> new HouseholdMemberDTO(p.getFirstName(), p.getLastName()))
                 .toList();
 
-        List<ChildInfoDTO> children = result.getChildren().stream()
+        // Ensuite les enfants avec leur âge
+        List<ChildInfoDTO> childrenDTOs = children.stream()
                 .map(p -> new ChildInfoDTO(
                         p.getFirstName(),
                         p.getLastName(),
                         utils.calculateAge(p),
-                        household))
+                        householdMembers))
                 .toList();
 
-        logger.info("[RESPONSE] GET childAlert?address={} -> SUCCESS", address);
-        return ResponseEntity.ok(new ChildAlertResponseDTO(children));
+        // 4. Construire le DTO de réponse
+        ChildAlertResponseDTO response = new ChildAlertResponseDTO(childrenDTOs);
+
+        logger.info("[RESPONSE] GET /childAlert -> {} enfants trouvés", childrenDTOs.size());
+
+        return ResponseEntity.ok(response);
     }
 
 }

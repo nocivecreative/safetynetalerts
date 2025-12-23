@@ -40,4 +40,12 @@ public class Utils {
         return Period.between(LocalBirthDate, LocalDate.now()).getYears();
     }
 
+    public boolean isChild(Person person) {
+        return this.calculateAge(person) <= 18;
+    }
+
+    public boolean isAdult(Person person) {
+        return this.calculateAge(person) > 18;
+    }
+
 }
