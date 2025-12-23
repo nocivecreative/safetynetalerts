@@ -1,6 +1,5 @@
 package com.openclassrooms.safetynetalerts.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -10,25 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.openclassrooms.safetynetalerts.model.Person;
-import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
 import com.openclassrooms.safetynetalerts.repository.PersonRepository;
-import com.openclassrooms.safetynetalerts.utils.Utils;
 
 @Service
 public class PersonService {
     private final Logger logger = LoggerFactory.getLogger(PersonService.class);
 
-    // @Autowired
-    // private DataRepo dataRepo;
-
-    @Autowired
-    private FirestationRepository firestationRepository;
-
     @Autowired
     private PersonRepository personRepository;
-
-    @Autowired
-    private Utils utils;
 
     /**
      * Récupère toutes les personnes vivant à une adresse donnée
@@ -39,23 +27,6 @@ public class PersonService {
     public List<Person> getPersonsByAddress(String address) {
         logger.debug("[SERVICE] Recherche des personnes vivant à l'adresse={}", address);
         return personRepository.findByAddress(address);
-    }
-
-    public Person getPersonsByStations(List<Integer> stations) {
-        logger.debug("[SERVICE] looking for perons covered by stations={}", stations);
-
-        // Récupére toutes les adresses couvertes par les stations
-        Set<String> addresses = firestationRepository.findAddressesByStations(stations);
-
-        List<List<Person>> persons = new ArrayList<>();
-        // Pour chaque adresse, créer une liste des personnes
-        for (String address : addresses) {
-
-            persons.add(personRepository.findByAddress(address));
-
-        }
-
-        return null;
     }
 
     public List<Person> getPersonsByLastName(String lastName) {

@@ -19,9 +19,6 @@ import com.openclassrooms.safetynetalerts.repository.PersonRepository;
 public class FirestationService {
     private final Logger logger = LoggerFactory.getLogger(FirestationService.class);
 
-    // @Autowired
-    // private JsonDataRepo dataRepo;
-
     @Autowired
     private FirestationRepository firestationRepository;
 
