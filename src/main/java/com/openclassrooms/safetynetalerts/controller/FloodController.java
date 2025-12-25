@@ -87,7 +87,7 @@ public class FloodController {
 
                 // Créer le DTO
                 residents.add(new FloodResidentDTO(
-                        person.getFirstName(),
+                        person.getLastName(),
                         person.getPhone(),
                         utils.calculateAge(person),
                         new MedicalHistoryDTO(medications, allergies)));
