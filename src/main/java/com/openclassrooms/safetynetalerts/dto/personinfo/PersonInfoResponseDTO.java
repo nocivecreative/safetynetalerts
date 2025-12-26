@@ -3,14 +3,12 @@ package com.openclassrooms.safetynetalerts.dto.personinfo;
 import java.util.List;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
-public class PersonInfoResponseDTO{
+@RequiredArgsConstructor
+public class PersonInfoResponseDTO {
 
-    private List<PersonMedicalProfileDTO> persons;
-
-    public PersonInfoResponseDTO(List<PersonMedicalProfileDTO> persons) {
-        this.persons = persons;
-    }
+    private final List<PersonMedicalProfileDTO> persons;
 
 }

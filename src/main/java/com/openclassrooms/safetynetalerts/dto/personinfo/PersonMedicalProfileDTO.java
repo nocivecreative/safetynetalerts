@@ -3,23 +3,16 @@ package com.openclassrooms.safetynetalerts.dto.personinfo;
 import com.openclassrooms.safetynetalerts.dto.commons.MedicalHistoryDTO;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
+@RequiredArgsConstructor
 public class PersonMedicalProfileDTO {
 
-    private String lastname;
-    private String address;
-    private int age;
-    private String email;
-    private MedicalHistoryDTO medicalHistory;
-
-    public PersonMedicalProfileDTO(String lastname, String address, int age, String email,
-            MedicalHistoryDTO medicalHistory) {
-        this.lastname = lastname;
-        this.address = address;
-        this.age = age;
-        this.email = email;
-        this.medicalHistory = medicalHistory;
-    }
+    private final String lastName;
+    private final String address;
+    private final int age;
+    private final String email;
+    private final MedicalHistoryDTO medicalHistory;
 
 }

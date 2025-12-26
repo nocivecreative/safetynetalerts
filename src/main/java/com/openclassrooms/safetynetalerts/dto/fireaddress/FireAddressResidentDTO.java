@@ -3,23 +3,15 @@ package com.openclassrooms.safetynetalerts.dto.fireaddress;
 import com.openclassrooms.safetynetalerts.dto.commons.MedicalHistoryDTO;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
+@RequiredArgsConstructor
 public class FireAddressResidentDTO {
 
-    private String LastName;
-    private String phoneNumber;
-    private int age;
-    private MedicalHistoryDTO medicalHistory;
-
-    public FireAddressResidentDTO() {
-    }
-
-    public FireAddressResidentDTO(String lastName, String phoneNumber, MedicalHistoryDTO medicalHistory, int age) {
-        LastName = lastName;
-        this.phoneNumber = phoneNumber;
-        this.medicalHistory = medicalHistory;
-        this.age = age;
-    }
+    private final String LastName;
+    private final String phoneNumber;
+    private final MedicalHistoryDTO medicalHistory;
+    private final int age;
 
 }
