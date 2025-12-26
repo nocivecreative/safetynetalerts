@@ -3,14 +3,12 @@ package com.openclassrooms.safetynetalerts.dto.fireaddress;
 import java.util.List;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
+@RequiredArgsConstructor
 public class FireAddressResponseDTO {
-    private List<FireAddressResidentDTO> personList;
-    private int firestationNumber;
+    private final List<FireAddressResidentDTO> personList;
+    private final int firestationNumber;
 
-    public FireAddressResponseDTO(List<FireAddressResidentDTO> personList, int firestationNumber) {
-        this.personList = personList;
-        this.firestationNumber = firestationNumber;
-    }
 }

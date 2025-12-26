@@ -3,14 +3,12 @@ package com.openclassrooms.safetynetalerts.dto.communityemail;
 import java.util.Set;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
+@RequiredArgsConstructor
 public class CommunityEmailResponseDTO {
 
-    private Set<String> emailAddresses;
-
-    public CommunityEmailResponseDTO(Set<String> emailAddresses) {
-        this.emailAddresses = emailAddresses;
-    }
+    private final Set<String> emailAddresses;
 
 }
