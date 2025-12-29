@@ -16,6 +16,8 @@ import com.openclassrooms.safetynetalerts.repository.MedicalRecordRepository;
 public class Utils {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    private static final int ADULT_AGE_THRESHOLD = 18;
+
     private final MedicalRecordRepository medicalRepo;
     private final Clock clock;
 
@@ -44,11 +46,11 @@ public class Utils {
     }
 
     public boolean isChild(Person person) {
-        return this.calculateAge(person) <= 18;
+        return this.calculateAge(person) <= ADULT_AGE_THRESHOLD;
     }
 
     public boolean isAdult(Person person) {
-        return this.calculateAge(person) > 18;
+        return this.calculateAge(person) > ADULT_AGE_THRESHOLD;
     }
 
 }
