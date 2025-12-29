@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,14 +26,15 @@ import com.openclassrooms.safetynetalerts.utils.Utils;
 public class AlertController {
     private final Logger logger = LoggerFactory.getLogger(AlertController.class);
 
-    @Autowired
-    private FirestationService firestationService;
+    private final FirestationService firestationService;
+    private final PersonService personService;
+    private final Utils utils;
 
-    @Autowired
-    private PersonService personService;
-
-    @Autowired
-    private Utils utils;
+    public AlertController(FirestationService firestationService, PersonService personService, Utils utils) {
+        this.firestationService = firestationService;
+        this.personService = personService;
+        this.utils = utils;
+    }
 
     /**
      * GET /firestation?stationNumber=<stationNumber>

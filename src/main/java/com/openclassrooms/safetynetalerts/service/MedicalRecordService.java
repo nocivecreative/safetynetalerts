@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
@@ -43,8 +42,11 @@ import com.openclassrooms.safetynetalerts.repository.MedicalRecordRepository;
 public class MedicalRecordService {
     private final Logger logger = LoggerFactory.getLogger(MedicalRecordService.class);
 
-    @Autowired
-    private MedicalRecordRepository medicalRecordRepository;
+    private final MedicalRecordRepository medicalRecordRepository;
+
+    public MedicalRecordService(MedicalRecordRepository medicalRecordRepository) {
+        this.medicalRecordRepository = medicalRecordRepository;
+    }
 
     /**
      * Récupère un dossier médical par prénom et nom de famille.

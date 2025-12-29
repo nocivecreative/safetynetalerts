@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.openclassrooms.safetynetalerts.model.Person;
@@ -29,8 +28,11 @@ import com.openclassrooms.safetynetalerts.repository.PersonRepository;
 public class PersonService {
     private final Logger logger = LoggerFactory.getLogger(PersonService.class);
 
-    @Autowired
-    private PersonRepository personRepository;
+    private final PersonRepository personRepository;
+
+    public PersonService(PersonRepository personRepository) {
+        this.personRepository = personRepository;
+    }
 
     /**
      * Récupère toutes les personnes vivant à une adresse donnée.
