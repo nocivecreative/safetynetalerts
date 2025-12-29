@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.openclassrooms.safetynetalerts.model.Firestation;
@@ -38,11 +37,13 @@ import com.openclassrooms.safetynetalerts.repository.PersonRepository;
 public class FirestationService {
     private final Logger logger = LoggerFactory.getLogger(FirestationService.class);
 
-    @Autowired
-    private FirestationRepository firestationRepository;
+    private final FirestationRepository firestationRepository;
+    private final PersonRepository personRepository;
 
-    @Autowired
-    private PersonRepository personRepository;
+    public FirestationService(FirestationRepository firestationRepository, PersonRepository personRepository) {
+        this.firestationRepository = firestationRepository;
+        this.personRepository = personRepository;
+    }
 
     /**
      * Récupère la liste de toutes les personnes couvertes par une caserne donnée.
@@ -66,6 +67,28 @@ public class FirestationService {
                 .toList();
 
         return persons;
+    }
+
+    /**
+     * Récupère le numéro de station pour une adresse donnée.
+     *
+     * @param address l'adresse à rechercher
+     * @return le numéro de station, ou -1 si non trouvé
+     */
+    public Integer getStationNumberByAddress(String address) {
+        logger.debug("[SERVICE] Recherche du numéro de station pour l'adresse={}", address);
+        return firestationRepository.findStationNumberByAddress(address).orElse(-1);
+    }
+
+    /**
+     * Récupère l'ensemble des adresses couvertes par plusieurs stations.
+     *
+     * @param stations la liste des numéros de stations
+     * @return l'ensemble des adresses couvertes
+     */
+    public Set<String> getAddressesByStations(List<Integer> stations) {
+        logger.debug("[SERVICE] Recherche des adresses pour les stations={}", stations);
+        return firestationRepository.findAddressesByStations(stations);
     }
 
     /**
