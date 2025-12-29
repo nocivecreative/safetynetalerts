@@ -26,7 +26,14 @@ import com.openclassrooms.safetynetalerts.service.PersonService;
 import com.openclassrooms.safetynetalerts.utils.Utils;
 
 /**
- * Controller REST pour les alertes inondation (flood)
+ * Contrôleur REST pour la gestion des alertes inondation.
+ * <p>
+ * Ce contrôleur expose les endpoints permettant de récupérer les informations
+ * des foyers desservis par des stations de pompiers en cas d'inondation :
+ * <ul>
+ * <li>GET /flood/stations - Récupération des foyers par stations</li>
+ * </ul>
+ *
  */
 @RestController
 @RequestMapping("/flood")
@@ -47,9 +54,23 @@ public class FloodController {
     }
 
     /**
-     * GET /flood/stations?stations=<stations>
-     * Retourne tous les foyers desservis par les stations données, regroupés par
-     * adresse
+     * Récupère tous les foyers desservis par une liste de stations de pompiers.
+     * <p>
+     * Endpoint : GET /flood/stations?stations={stations}
+     * <p>
+     * Retourne l'ensemble des foyers (regroupés par adresse) couverts par les
+     * stations
+     * spécifiées. Pour chaque foyer, les informations suivantes sont fournies :
+     * nom,
+     * téléphone, âge et dossier médical (médicaments et allergies) de chaque
+     * résident.
+     * Cette information permet d'organiser efficacement les secours en cas
+     * d'inondation.
+     *
+     * @param stations la liste des numéros de stations de pompiers
+     * @return ResponseEntity contenant un {@link FloodStationsResponseDTO} avec la
+     *         liste
+     *         des foyers regroupés par adresse (HTTP 200)
      */
     @GetMapping("/stations")
     public ResponseEntity<FloodStationsResponseDTO> getPersonsByStations(

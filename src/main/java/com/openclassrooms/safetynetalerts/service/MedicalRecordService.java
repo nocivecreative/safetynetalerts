@@ -35,8 +35,6 @@ import com.openclassrooms.safetynetalerts.repository.MedicalRecordRepository;
  * Ces informations sont essentielles pour les services d'urgence lors
  * d'interventions.
  *
- * @author SafetyNet Alerts
- * @version 1.0
  */
 @Service
 public class MedicalRecordService {

@@ -21,8 +21,6 @@ import com.openclassrooms.safetynetalerts.repository.PersonRepository;
  * <li>Récupération des emails par ville</li>
  * </ul>
  *
- * @author SafetyNet Alerts
- * @version 1.0
  */
 @Service
 public class PersonService {

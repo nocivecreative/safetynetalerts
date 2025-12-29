@@ -22,6 +22,18 @@ import com.openclassrooms.safetynetalerts.service.FirestationService;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 import com.openclassrooms.safetynetalerts.utils.Utils;
 
+/**
+ * Contrôleur REST pour la gestion des alertes de sécurité publique.
+ * <p>
+ * Ce contrôleur expose les endpoints suivants :
+ * <ul>
+ * <li>GET /firestation - Récupération des personnes couvertes par une
+ * station</li>
+ * <li>GET /phoneAlert - Récupération des numéros de téléphone par station</li>
+ * <li>GET /childAlert - Récupération des enfants à une adresse donnée</li>
+ * </ul>
+ *
+ */
 @RestController
 public class AlertController {
     private final Logger logger = LoggerFactory.getLogger(AlertController.class);
@@ -37,9 +49,22 @@ public class AlertController {
     }
 
     /**
-     * GET /firestation?stationNumber=<stationNumber>
-     * Retourne les personnes couvertes par une station avec décompte
-     * adultes/enfants
+     * Récupère la liste des personnes couvertes par une station de pompiers donnée.
+     * <p>
+     * Endpoint : GET /firestation?stationNumber={stationNumber}
+     * <p>
+     * Retourne la liste des résidents couverts par la station spécifiée, ainsi
+     * qu'un
+     * décompte du nombre d'adultes et d'enfants. Cette information est utilisée
+     * pour
+     * les opérations d'urgence nécessitant une évaluation rapide des populations à
+     * risque.
+     *
+     * @param stationNumber le numéro de la station de pompiers dont on veut
+     *                      récupérer les personnes couvertes
+     * @return ResponseEntity contenant un {@link FirestationCoverageResponseDTO}
+     *         avec la liste des résidents,
+     *         le nombre d'adultes et le nombre d'enfants (HTTP 200)
      */
     @GetMapping("/firestation")
     public ResponseEntity<FirestationCoverageResponseDTO> getPersonsByStation(
@@ -84,8 +109,22 @@ public class AlertController {
     }
 
     /**
-     * GET /phoneAlert?firestation=<firestation>
-     * Retourne les numéros de téléphone des résidents couverts par une station
+     * Récupère les numéros de téléphone des résidents couverts par une station de
+     * pompiers.
+     * <p>
+     * Endpoint : GET /phoneAlert?firestation={firestation}
+     * <p>
+     * Retourne l'ensemble des numéros de téléphone uniques des personnes desservies
+     * par
+     * la station spécifiée. Cette information permet d'envoyer rapidement des
+     * alertes SMS
+     * en cas d'urgence (incendie, inondation, etc.).
+     *
+     * @param firestation le numéro de la station de pompiers dont on veut récupérer
+     *                    les numéros de téléphone
+     * @return ResponseEntity contenant un {@link PhoneAlertResponseDTO} avec
+     *         l'ensemble des numéros
+     *         de téléphone uniques (HTTP 200)
      */
     @GetMapping("/phoneAlert")
     public ResponseEntity<PhoneAlertResponseDTO> getPhoneByStation(
@@ -105,9 +144,23 @@ public class AlertController {
     }
 
     /**
-     * GET /childAlert?address=<address>
-     * Retourne la liste des enfants habitant à cette adresse avec les autres
-     * membres du foyer
+     * Récupère la liste des enfants habitant à une adresse donnée.
+     * <p>
+     * Endpoint : GET /childAlert?address={address}
+     * <p>
+     * Retourne la liste des enfants (personnes de moins de 18 ans) résidant à
+     * l'adresse
+     * spécifiée, accompagnée de leurs informations (prénom, nom, âge) et de la
+     * liste
+     * des autres membres du foyer. Si aucun enfant n'habite à cette adresse, une
+     * liste
+     * vide est retournée.
+     *
+     * @param address l'adresse pour laquelle on souhaite récupérer les informations
+     *                des enfants
+     * @return ResponseEntity contenant un {@link ChildAlertResponseDTO} avec la
+     *         liste des enfants
+     *         et des membres du foyer (HTTP 200)
      */
     @GetMapping("/childAlert")
     public ResponseEntity<ChildAlertResponseDTO> getChildrenByAddress(

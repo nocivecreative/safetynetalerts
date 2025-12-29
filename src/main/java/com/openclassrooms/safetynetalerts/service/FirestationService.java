@@ -30,8 +30,6 @@ import com.openclassrooms.safetynetalerts.repository.PersonRepository;
  * à une même caserne, définissant ainsi les zones de couverture géographique
  * pour les interventions d'urgence.
  *
- * @author SafetyNet Alerts
- * @version 1.0
  */
 @Service
 public class FirestationService {

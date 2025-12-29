@@ -37,6 +37,22 @@ import com.openclassrooms.safetynetalerts.utils.Utils;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
+/**
+ * Contrôleur REST pour la gestion des personnes et des informations
+ * personnelles.
+ * <p>
+ * Ce contrôleur expose les endpoints suivants :
+ * <ul>
+ * <li>GET /personInfo - Récupération des informations médicales par nom</li>
+ * <li>GET /fire - Récupération des habitants et numéro de station par
+ * adresse</li>
+ * <li>GET /communityEmail - Récupération des emails par ville</li>
+ * <li>POST /person - Création d'une nouvelle personne</li>
+ * <li>PUT /person - Mise à jour d'une personne existante</li>
+ * <li>DELETE /person - Suppression d'une personne</li>
+ * </ul>
+ *
+ */
 @RestController
 @Validated
 public class PersonController {
@@ -58,8 +74,21 @@ public class PersonController {
     }
 
     /**
-     * GET /personInfo?lastName=<lastName> (Erreur CDC)
-     * Retourne les infos et dossier médical des personnes avec ce nom
+     * Récupère les informations médicales complètes des personnes par nom de
+     * famille.
+     * <p>
+     * Endpoint : GET /personInfo?lastName={lastName}
+     * <p>
+     * Retourne la liste de toutes les personnes portant le nom de famille spécifié,
+     * avec leurs informations complètes : nom, adresse, âge, email, médicaments et
+     * allergies. Cette information est utile pour identifier rapidement les
+     * personnes
+     * ayant des besoins médicaux spécifiques lors d'interventions d'urgence.
+     *
+     * @param lastName le nom de famille des personnes recherchées
+     * @return ResponseEntity contenant un {@link PersonInfoResponseDTO} avec la
+     *         liste
+     *         des profils médicaux (HTTP 200)
      */
     @GetMapping("/personInfo")
     public ResponseEntity<PersonInfoResponseDTO> getPersonsByLastName(
@@ -106,9 +135,21 @@ public class PersonController {
     }
 
     /**
-     * GET /fire?address=<address>
-     * Retourne les habitants à une adresse avec leurs infos médicales et le numéro
-     * de station
+     * Récupère les habitants d'une adresse avec leurs informations médicales.
+     * <p>
+     * Endpoint : GET /fire?address={address}
+     * <p>
+     * Retourne la liste des personnes habitant à l'adresse spécifiée, avec leurs
+     * informations médicales (nom, téléphone, âge, médicaments, allergies) ainsi
+     * que
+     * le numéro de la station de pompiers desservant cette adresse. Cette
+     * information
+     * est essentielle pour les interventions d'urgence en cas d'incendie.
+     *
+     * @param address l'adresse pour laquelle on souhaite récupérer les habitants
+     * @return ResponseEntity contenant un {@link FireAddressResponseDTO} avec la
+     *         liste
+     *         des résidents et le numéro de station (HTTP 200)
      */
     @GetMapping("/fire")
     public ResponseEntity<FireAddressResponseDTO> getPersonsByAddress(
@@ -156,14 +197,45 @@ public class PersonController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Récupère les adresses email de tous les habitants d'une ville.
+     * <p>
+     * Endpoint : GET /communityEmail?city={city}
+     * <p>
+     * Retourne l'ensemble des adresses email uniques des personnes habitant dans
+     * la ville spécifiée. Cette information permet d'envoyer des communications
+     * d'urgence par email à l'ensemble de la communauté.
+     *
+     * @param city le nom de la ville dont on souhaite récupérer les emails
+     * @return ResponseEntity contenant un {@link CommunityEmailResponseDTO} avec
+     *         l'ensemble
+     *         des emails uniques (HTTP 200)
+     */
     @GetMapping("/communityEmail")
     public ResponseEntity<CommunityEmailResponseDTO> getEmailsByCity(
             @RequestParam("city") String city) {
 
+        logger.info("[CALL] GET /communityEmail?city={}", city);
+
         Set<String> emails = personService.getEmailsByCity(city);
+
+        logger.info("[RESPONSE] GET /communityEmail -> {} emails trouvés", emails.size());
+
         return ResponseEntity.ok(new CommunityEmailResponseDTO(emails));
     }
 
+    /**
+     * Crée une nouvelle personne dans le système.
+     * <p>
+     * Endpoint : POST /person
+     * <p>
+     * Permet d'ajouter une nouvelle personne avec ses informations personnelles
+     * (prénom, nom, adresse, ville, code postal, téléphone, email). Si une personne
+     * avec le même prénom et nom existe déjà, une exception sera levée.
+     *
+     * @param personDTO le DTO contenant les informations de la personne à créer
+     * @return ResponseEntity contenant le {@link PersonDTO} créé (HTTP 201)
+     */
     @PostMapping("/person")
     public ResponseEntity<PersonDTO> addPerson(
             @Valid @RequestBody PersonDTO personDTO) {
@@ -184,6 +256,21 @@ public class PersonController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * Met à jour les informations d'une personne existante.
+     * <p>
+     * Endpoint : PUT /person?firstName={firstName}&lastName={lastName}
+     * <p>
+     * Permet de modifier les informations personnelles d'une personne existante
+     * (adresse, ville, code postal, téléphone, email). Le prénom et le nom ne
+     * peuvent
+     * pas être modifiés. Si la personne n'existe pas, une exception sera levée.
+     *
+     * @param firstName le prénom de la personne à mettre à jour
+     * @param lastName  le nom de famille de la personne à mettre à jour
+     * @param personDTO le DTO contenant les nouvelles informations de la personne
+     * @return ResponseEntity contenant le {@link PersonDTO} mis à jour (HTTP 200)
+     */
     @PutMapping("/person")
     public ResponseEntity<PersonDTO> updatePerson(
             @RequestParam("firstName") @NotBlank(message = "First name is required") String firstName,
@@ -207,6 +294,18 @@ public class PersonController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Supprime une personne du système.
+     * <p>
+     * Endpoint : DELETE /person?firstName={firstName}&lastName={lastName}
+     * <p>
+     * Permet de supprimer définitivement une personne et toutes ses informations.
+     * Si la personne n'existe pas, une exception sera levée.
+     *
+     * @param firstName le prénom de la personne à supprimer
+     * @param lastName  le nom de famille de la personne à supprimer
+     * @return ResponseEntity sans contenu (HTTP 204) en cas de suppression réussie
+     */
     @DeleteMapping("/person")
     public ResponseEntity<Void> deletePerson(
             @RequestParam("firstName") @NotBlank(message = "First name is required") String firstName,

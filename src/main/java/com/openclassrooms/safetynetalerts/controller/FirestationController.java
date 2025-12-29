@@ -21,6 +21,19 @@ import com.openclassrooms.safetynetalerts.service.FirestationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
+/**
+ * Contrôleur REST pour la gestion des casernes de pompiers.
+ * <p>
+ * Ce contrôleur expose les endpoints CRUD pour gérer les mappings entre
+ * les adresses et les numéros de stations de pompiers :
+ * <ul>
+ * <li>POST /firestation - Création d'un nouveau mapping caserne/adresse</li>
+ * <li>PUT /firestation - Mise à jour du numéro de station pour une adresse</li>
+ * <li>DELETE /firestation - Suppression d'un mapping par adresse ou numéro de
+ * station</li>
+ * </ul>
+ *
+ */
 @RestController
 @RequestMapping("/firestation")
 @Validated
@@ -31,8 +44,18 @@ public class FirestationController {
     FirestationService firestationService;
 
     /**
-     * POST /firestation
-     * Ajoute un nouveau mapping caserne/adresse
+     * Crée un nouveau mapping entre une adresse et un numéro de station de
+     * pompiers.
+     * <p>
+     * Endpoint : POST /firestation
+     * <p>
+     * Permet d'ajouter une nouvelle association entre une adresse et une station de
+     * pompiers.
+     * Si un mapping existe déjà pour cette adresse, une exception sera levée.
+     *
+     * @param firestationDTO le DTO contenant l'adresse et le numéro de station à
+     *                       associer
+     * @return ResponseEntity contenant le {@link FirestationDTO} créé (HTTP 201)
      */
     @PostMapping
     public ResponseEntity<FirestationDTO> addMapping(@Valid @RequestBody FirestationDTO firestationDTO) {
@@ -55,12 +78,18 @@ public class FirestationController {
     }
 
     /**
-     * PUT /firestation
+     * Met à jour le numéro de station de pompiers associé à une adresse.
      * <p>
-     * Met à jour le numéro de station pour une adresse
-     * 
-     * @param address        l'adresse de la caserne à supprimer
-     * @param firestationDTO le DTO caserne
+     * Endpoint : PUT /firestation?address={address}
+     * <p>
+     * Permet de modifier le numéro de station pour une adresse existante.
+     * Si l'adresse n'existe pas dans la base, une exception sera levée.
+     *
+     * @param address        l'adresse dont on souhaite modifier le numéro de
+     *                       station
+     * @param firestationDTO le DTO contenant le nouveau numéro de station
+     * @return ResponseEntity contenant le {@link FirestationDTO} mis à jour (HTTP
+     *         200)
      */
     @PutMapping
     public ResponseEntity<FirestationDTO> updateStation(
@@ -83,13 +112,22 @@ public class FirestationController {
     }
 
     /**
-     * DELETE /firestation?address="adresse" OU /firestation?station="numéro"
-     * 
+     * Supprime un ou plusieurs mappings entre adresse et station de pompiers.
      * <p>
-     * Supprime un mapping (soit par adresse, soit par numéro de caserne)
-     * 
-     * @param address l'adresse de la caserne à supprimer (optional)
-     * @param station le numéro de la caserne à supprimer (optional)
+     * Endpoint : DELETE /firestation?address={address} OU DELETE
+     * /firestation?station={station}
+     * <p>
+     * Permet de supprimer un mapping de deux manières :
+     * <ul>
+     * <li>Par adresse : supprime le mapping spécifique pour cette adresse</li>
+     * <li>Par numéro de station : supprime tous les mappings associés à ce
+     * numéro</li>
+     * </ul>
+     * Au moins un des deux paramètres doit être fourni.
+     *
+     * @param address l'adresse du mapping à supprimer (optionnel)
+     * @param station le numéro de station dont on veut supprimer tous les mappings
+     *                (optionnel)
      * @return ResponseEntity sans contenu (HTTP 204) en cas de suppression réussie
      */
     @DeleteMapping

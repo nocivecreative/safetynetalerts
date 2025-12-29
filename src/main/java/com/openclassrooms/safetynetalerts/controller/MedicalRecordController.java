@@ -21,6 +21,18 @@ import com.openclassrooms.safetynetalerts.service.MedicalRecordService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
+/**
+ * Contrôleur REST pour la gestion des dossiers médicaux.
+ * <p>
+ * Ce contrôleur expose les endpoints CRUD pour gérer les dossiers médicaux
+ * des personnes (date de naissance, médicaments, allergies) :
+ * <ul>
+ * <li>POST /medicalRecord - Création d'un nouveau dossier médical</li>
+ * <li>PUT /medicalRecord - Mise à jour d'un dossier médical existant</li>
+ * <li>DELETE /medicalRecord - Suppression d'un dossier médical</li>
+ * </ul>
+ *
+ */
 @RestController
 @RequestMapping("/medicalRecord")
 @Validated
@@ -31,8 +43,18 @@ public class MedicalRecordController {
     private MedicalRecordService medicalRecordService;
 
     /**
-     * POST /medicalRecord
-     * Crée un nouveau dossier médical
+     * Crée un nouveau dossier médical pour une personne.
+     * <p>
+     * Endpoint : POST /medicalRecord
+     * <p>
+     * Permet d'ajouter un nouveau dossier médical contenant la date de naissance,
+     * les médicaments et les allergies d'une personne. Si un dossier médical existe
+     * déjà pour cette personne (même prénom et nom), une exception sera levée.
+     *
+     * @param medicalRecordDTO le DTO contenant les informations médicales (prénom,
+     *                         nom, date de naissance,
+     *                         médicaments, allergies)
+     * @return ResponseEntity contenant le {@link MedicalRecordDTO} créé (HTTP 201)
      */
     @PostMapping
     public ResponseEntity<MedicalRecordDTO> createMedicalRecord(
@@ -60,8 +82,22 @@ public class MedicalRecordController {
     }
 
     /**
-     * PUT /medicalRecord?firstName=<firstName>&lastName=<lastName>
-     * Met à jour un dossier médical existant
+     * Met à jour un dossier médical existant.
+     * <p>
+     * Endpoint : PUT /medicalRecord?firstName={firstName}&lastName={lastName}
+     * <p>
+     * Permet de modifier les informations médicales (date de naissance,
+     * médicaments,
+     * allergies) d'un dossier existant. Si le dossier n'existe pas, une exception
+     * sera levée.
+     *
+     * @param firstName        le prénom de la personne dont on veut modifier le
+     *                         dossier médical
+     * @param lastName         le nom de famille de la personne dont on veut
+     *                         modifier le dossier médical
+     * @param medicalRecordDTO le DTO contenant les nouvelles informations médicales
+     * @return ResponseEntity contenant le {@link MedicalRecordDTO} mis à jour (HTTP
+     *         200)
      */
     @PutMapping
     public ResponseEntity<MedicalRecordDTO> updateMedicalRecord(
@@ -92,8 +128,18 @@ public class MedicalRecordController {
     }
 
     /**
-     * DELETE /medicalRecord?firstName=<firstName>&lastName=<lastName>
-     * Supprime un dossier médical
+     * Supprime un dossier médical existant.
+     * <p>
+     * Endpoint : DELETE /medicalRecord?firstName={firstName}&lastName={lastName}
+     * <p>
+     * Permet de supprimer définitivement le dossier médical d'une personne.
+     * Si le dossier n'existe pas, une exception sera levée.
+     *
+     * @param firstName le prénom de la personne dont on veut supprimer le dossier
+     *                  médical
+     * @param lastName  le nom de famille de la personne dont on veut supprimer le
+     *                  dossier médical
+     * @return ResponseEntity sans contenu (HTTP 204) en cas de suppression réussie
      */
     @DeleteMapping
     public ResponseEntity<Void> deleteMedicalRecord(
