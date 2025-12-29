@@ -1,5 +1,6 @@
 package com.openclassrooms.safetynetalerts.utils;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
@@ -16,9 +17,11 @@ public class Utils {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy");
     private final MedicalRecordRepository medicalRepo;
+    private final Clock clock;
 
-    public Utils(MedicalRecordRepository medicalRepo) {
+    public Utils(MedicalRecordRepository medicalRepo, Clock clock) {
         this.medicalRepo = medicalRepo;
+        this.clock = clock;
     }
 
     public int calculateAge(Person person) {
@@ -37,7 +40,7 @@ public class Utils {
         }
 
         LocalDate LocalBirthDate = LocalDate.parse(birthDate, DATE_FORMATTER);
-        return Period.between(LocalBirthDate, LocalDate.now()).getYears();
+        return Period.between(LocalBirthDate, LocalDate.now(clock)).getYears();
     }
 
     public boolean isChild(Person person) {
