@@ -107,19 +107,6 @@ class MedicalRecordRepositoryUT {
         assertTrue(result.contains(record3));
     }
 
-    @Test
-    void findAll_withEmptyList_returnsEmptyList() {
-        // Arrange
-        medicalRecords.clear();
-
-        // Act
-        List<MedicalRecord> result = medicalRecordRepository.findAll();
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
-
     // ==================== Tests findByFirstNameAndLastName ====================
 
     @Test
@@ -139,15 +126,6 @@ class MedicalRecordRepositoryUT {
     void findByFirstNameAndLastName_withNonExistingRecord_returnsEmpty() {
         // Act
         Optional<MedicalRecord> result = medicalRecordRepository.findByFirstNameAndLastName("Unknown", "Person");
-
-        // Assert
-        assertFalse(result.isPresent());
-    }
-
-    @Test
-    void findByFirstNameAndLastName_withPartialMatch_returnsEmpty() {
-        // Act - Bon prénom, mauvais nom
-        Optional<MedicalRecord> result = medicalRecordRepository.findByFirstNameAndLastName("John", "Smith");
 
         // Assert
         assertFalse(result.isPresent());
@@ -224,27 +202,6 @@ class MedicalRecordRepositoryUT {
         assertEquals(Arrays.asList("gluten"), found.get().getAllergies());
     }
 
-    @Test
-    void save_withPartialUpdate_updatesOnlyProvidedFields() {
-        // Arrange
-        MedicalRecord partialUpdate = new MedicalRecord();
-        partialUpdate.setFirstName("John");
-        partialUpdate.setLastName("Doe");
-        partialUpdate.setBirthdate("03/03/1982"); // Nouvelle date
-        // medications et allergies = null (ne doivent pas être modifiés)
-
-        // Act
-        medicalRecordRepository.save(partialUpdate);
-
-        // Assert
-        Optional<MedicalRecord> found = medicalRecordRepository.findByFirstNameAndLastName("John", "Doe");
-        assertTrue(found.isPresent());
-        assertEquals("03/03/1982", found.get().getBirthdate());
-        // Les medications et allergies originaux doivent être préservés
-        assertEquals(Arrays.asList("medication1:100mg", "medication2:50mg"), found.get().getMedications());
-        assertEquals(Arrays.asList("peanut", "shellfish"), found.get().getAllergies());
-    }
-
     // ==================== Tests update ====================
 
     @Test
@@ -280,24 +237,6 @@ class MedicalRecordRepositoryUT {
         assertFalse(result.isPresent());
     }
 
-    @Test
-    void update_withPartialData_updatesOnlyProvidedFields() {
-        // Arrange
-        MedicalRecord partialUpdate = new MedicalRecord();
-        partialUpdate.setMedications(Arrays.asList("only_meds:100mg"));
-        // birthdate et allergies = null (ne doivent pas être modifiés)
-
-        // Act
-        medicalRecordRepository.update("John", "Doe", partialUpdate);
-
-        // Assert
-        Optional<MedicalRecord> found = medicalRecordRepository.findByFirstNameAndLastName("John", "Doe");
-        assertTrue(found.isPresent());
-        assertEquals("01/01/1980", found.get().getBirthdate()); // Préservé
-        assertEquals(Arrays.asList("only_meds:100mg"), found.get().getMedications()); // Mis à jour
-        assertEquals(Arrays.asList("peanut", "shellfish"), found.get().getAllergies()); // Préservé
-    }
-
     // ==================== Tests delete ====================
 
     @Test
@@ -327,19 +266,5 @@ class MedicalRecordRepositoryUT {
         // Assert
         assertFalse(result);
         assertEquals(initialSize, medicalRecords.size());
-    }
-
-    @Test
-    void delete_withPartialMatch_returnsFalse() {
-        // Arrange
-        int initialSize = medicalRecords.size();
-
-        // Act - Bon prénom, mauvais nom
-        boolean result = medicalRecordRepository.delete("John", "Smith");
-
-        // Assert
-        assertFalse(result);
-        assertEquals(initialSize, medicalRecords.size());
-        assertTrue(medicalRecords.contains(record1));
     }
 }

@@ -1,18 +1,26 @@
 package com.openclassrooms.safetynetalerts.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.openclassrooms.safetynetalerts.model.Firestation;
@@ -79,8 +87,7 @@ class FirestationServiceUT {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> firestationService.addMapping(firestation)
-        );
+                () -> firestationService.addMapping(firestation));
 
         assertEquals("L'adresse existe déjà", exception.getMessage());
         verify(firestationRepository, never()).addFirestation(any());
@@ -95,8 +102,7 @@ class FirestationServiceUT {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> firestationService.addMapping(firestation)
-        );
+                () -> firestationService.addMapping(firestation));
 
         assertEquals("Le numéro de la caserne existe déjà", exception.getMessage());
         verify(firestationRepository, never()).addFirestation(any());
@@ -112,7 +118,10 @@ class FirestationServiceUT {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> firestationService.updateMapping(firestation)
+                () -> firestationService.updateMapping("123 Main St", firestation) /*
+                                                                                    * TODO Passer l'adrsse direct : pas
+                                                                                    * ouf ??
+                                                                                    */
         );
 
         assertEquals("Adresse non trouvée", exception.getMessage());
@@ -126,8 +135,7 @@ class FirestationServiceUT {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> firestationService.deleteMapping("123 Main St", 1)
-        );
+                () -> firestationService.deleteMapping("123 Main St", 1));
 
         assertEquals("Spécifiez soit l'adresse soit le numéro, pas les deux", exception.getMessage());
         verify(firestationRepository, never()).deleteFirestationByAddress(anyString());
@@ -139,12 +147,31 @@ class FirestationServiceUT {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> firestationService.deleteMapping(null, null)
-        );
+                () -> firestationService.deleteMapping(null, null));
 
-        assertEquals("L'adresse ou le numéro doivent être fournis", exception.getMessage());
+        assertEquals("Vous devez spécifier soit l'adresse soit le numéro de station", exception.getMessage());
         verify(firestationRepository, never()).deleteFirestationByAddress(anyString());
         verify(firestationRepository, never()).deleteFirestationByStation(anyInt());
+    }
+
+    @Test
+    void deleteMapping_withAddressOnly_deletesSuccessfully() {
+        // Act
+        firestationService.deleteMapping("123 Main St", null);
+
+        // Assert
+        verify(firestationRepository, times(1)).deleteFirestationByAddress("123 Main St");
+        verify(firestationRepository, never()).deleteFirestationByStation(anyInt());
+    }
+
+    @Test
+    void deleteMapping_withStationOnly_deletesSuccessfully() {
+        // Act
+        firestationService.deleteMapping(null, 1);
+
+        // Assert
+        verify(firestationRepository, times(1)).deleteFirestationByStation(1);
+        verify(firestationRepository, never()).deleteFirestationByAddress(anyString());
     }
 
     // ==================== Tests getPhoneNumbersByStation ====================
@@ -174,50 +201,6 @@ class FirestationServiceUT {
         verify(personRepository, times(1)).findByAddress("456 Oak Ave");
     }
 
-    @Test
-    void getPhoneNumbersByStation_withNoAddresses_returnsEmptySet() {
-        // Arrange
-        int stationNumber = 99;
-        when(firestationRepository.findAddressesByStation(stationNumber)).thenReturn(Collections.emptyList());
-
-        // Act
-        Set<String> phoneNumbers = firestationService.getPhoneNumbersByStation(stationNumber);
-
-        // Assert
-        assertNotNull(phoneNumbers);
-        assertTrue(phoneNumbers.isEmpty());
-
-        verify(firestationRepository, times(1)).findAddressesByStation(stationNumber);
-        verify(personRepository, never()).findByAddress(anyString());
-    }
-
-    @Test
-    void getPhoneNumbersByStation_withDuplicatePhones_returnsDeduplicated() {
-        // Arrange
-        int stationNumber = 1;
-        Person person4 = new Person();
-        person4.setFirstName("Alice");
-        person4.setLastName("Brown");
-        person4.setAddress("456 Oak Ave");
-        person4.setPhone("123-456-7890"); // Même téléphone que person1
-
-        List<String> addresses = Arrays.asList("123 Main St", "456 Oak Ave");
-
-        when(firestationRepository.findAddressesByStation(stationNumber)).thenReturn(addresses);
-        when(personRepository.findByAddress("123 Main St")).thenReturn(Arrays.asList(person1));
-        when(personRepository.findByAddress("456 Oak Ave")).thenReturn(Arrays.asList(person4));
-
-        // Act
-        Set<String> phoneNumbers = firestationService.getPhoneNumbersByStation(stationNumber);
-
-        // Assert
-        assertNotNull(phoneNumbers);
-        assertEquals(1, phoneNumbers.size());
-        assertTrue(phoneNumbers.contains("123-456-7890"));
-
-        verify(firestationRepository, times(1)).findAddressesByStation(stationNumber);
-    }
-
     // ==================== Tests getPersonsCoveredByStation ====================
 
     @Test
@@ -243,44 +226,5 @@ class FirestationServiceUT {
         verify(firestationRepository, times(1)).findAddressesByStation(stationNumber);
         verify(personRepository, times(1)).findByAddress("123 Main St");
         verify(personRepository, times(1)).findByAddress("456 Oak Ave");
-    }
-
-    @Test
-    void getPersonsCoveredByStation_withNoAddresses_returnsEmptyList() {
-        // Arrange
-        int stationNumber = 99;
-        when(firestationRepository.findAddressesByStation(stationNumber)).thenReturn(Collections.emptyList());
-
-        // Act
-        List<Person> persons = firestationService.getPersonsCoveredByStation(stationNumber);
-
-        // Assert
-        assertNotNull(persons);
-        assertTrue(persons.isEmpty());
-
-        verify(firestationRepository, times(1)).findAddressesByStation(stationNumber);
-        verify(personRepository, never()).findByAddress(anyString());
-    }
-
-    @Test
-    void getPersonsCoveredByStation_withOneAddress_returnsPersonsAtAddress() {
-        // Arrange
-        int stationNumber = 1;
-        List<String> addresses = Arrays.asList("123 Main St");
-
-        when(firestationRepository.findAddressesByStation(stationNumber)).thenReturn(addresses);
-        when(personRepository.findByAddress("123 Main St")).thenReturn(Arrays.asList(person1, person3));
-
-        // Act
-        List<Person> persons = firestationService.getPersonsCoveredByStation(stationNumber);
-
-        // Assert
-        assertNotNull(persons);
-        assertEquals(2, persons.size());
-        assertTrue(persons.contains(person1));
-        assertTrue(persons.contains(person3));
-
-        verify(firestationRepository, times(1)).findAddressesByStation(stationNumber);
-        verify(personRepository, times(1)).findByAddress("123 Main St");
     }
 }

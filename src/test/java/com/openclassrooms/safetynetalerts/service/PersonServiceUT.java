@@ -1,13 +1,22 @@
 package com.openclassrooms.safetynetalerts.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import java.util.Arrays;
+import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.openclassrooms.safetynetalerts.model.Person;
@@ -42,6 +51,54 @@ class PersonServiceUT {
         person.setEmail("john.doe@email.com");
     }
 
+    // ==================== Test getPersonsByAddress ===========
+
+    @Test
+    void getPersonsByAddress_ExistingPerson_ReturnOK() {
+        // Arrange
+        Person person2 = new Person();
+        person2.setFirstName("Jane");
+        person2.setLastName("Doe");
+        person2.setAddress("123 Main St");
+
+        List<Person> expectedPersons = Arrays.asList(person, person2);
+        when(personRepository.findByAddress("123 Main St")).thenReturn(expectedPersons);
+
+        // Act
+        List<Person> result = personService.getPersonsByAddress("123 Main St");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.contains(person));
+        assertTrue(result.contains(person2));
+        verify(personRepository).findByAddress("123 Main St");
+    }
+
+    // ==================== Test getPersonsByLastName ===========
+
+    @Test
+    void getPersonsByLastName_ExistingPerson_ReturnOK() {
+        // Arrange
+        Person person2 = new Person();
+        person2.setFirstName("Jane");
+        person2.setLastName("Doe");
+        person2.setAddress("123 Main St");
+
+        List<Person> expectedPersons = Arrays.asList(person, person2);
+        when(personRepository.findByLastName("Doe")).thenReturn(expectedPersons);
+
+        // Act
+        List<Person> result = personService.getPersonsByLastName("Doe");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.contains(person));
+        assertTrue(result.contains(person2));
+        verify(personRepository).findByLastName("Doe");
+    }
+
     // ==================== Tests addPerson ====================
 
     @Test
@@ -52,8 +109,7 @@ class PersonServiceUT {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> personService.addPerson(person)
-        );
+                () -> personService.addPerson(person));
 
         assertEquals("Person already exist", exception.getMessage());
         verify(personRepository, never()).addPerson(any(Person.class));
@@ -69,8 +125,7 @@ class PersonServiceUT {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> personService.updatePerson(person)
-        );
+                () -> personService.updatePerson(person));
 
         assertEquals("Person not found", exception.getMessage());
         verify(personRepository, never()).updatePerson(any(Person.class));
@@ -86,8 +141,7 @@ class PersonServiceUT {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> personService.deletePerson("Unknown", "Person")
-        );
+                () -> personService.deletePerson("Unknown", "Person"));
 
         assertEquals("Person not found", exception.getMessage());
         verify(personRepository, never()).deletePerson(anyString(), anyString());

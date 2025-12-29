@@ -1,17 +1,25 @@
 package com.openclassrooms.safetynetalerts.e2e;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Arrays;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-
-import java.util.Arrays;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
@@ -45,11 +53,35 @@ import com.openclassrooms.safetynetalerts.dto.personinfo.PersonMedicalProfileDTO
  * services)
  * et @DirtiesContext pour garantir l'isolation (recharge contexte après le
  * test).
+ *
+ * Principe FIRST:
+ * - Fast: Test E2E intentionnellement lent (contexte Spring complet), séparé par @Tag("e2e")
+ * - Independent: Utilise @DirtiesContext pour isolation, crée ses propres données
+ * - Repeatable: Clock fixe (26/12/2025) pour garantir calculs d'âge déterministes
+ * - Self-Validating: Assertions claires avec AssertJ
+ * - Timely: Teste le workflow complet end-to-end
  */
+@Tag("e2e")
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SafetyNetAlertsE2E {
+
+    /**
+     * Configuration de test pour injecter un Clock fixe.
+     * Garantit que les calculs d'âge sont déterministes et répétables.
+     */
+    @TestConfiguration
+    static class TestClockConfig {
+        @Bean
+        @Primary
+        public Clock testClock() {
+            // Date fixe: 26 décembre 2025 à minuit
+            LocalDate referenceDate = LocalDate.of(2025, 12, 26);
+            Instant fixedInstant = referenceDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            return Clock.fixed(fixedInstant, ZoneId.systemDefault());
+        }
+    }
 
     @LocalServerPort
     private int port;
@@ -158,7 +190,7 @@ class SafetyNetAlertsE2E {
     // ========== PHASE 2: VERIFY INITIAL STATE ==========
 
     private void verifyPersonInfo() {
-        String url = getBaseUrl() + "/personInfolastName?lastName=" + TEST_LAST_NAME;
+        String url = getBaseUrl() + "/personInfo?lastName=" + TEST_LAST_NAME;
         ResponseEntity<PersonInfoResponseDTO> response = restTemplate.getForEntity(
                 url,
                 PersonInfoResponseDTO.class);
@@ -310,7 +342,7 @@ class SafetyNetAlertsE2E {
     }
 
     private void verifyUpdatedMedicalRecord() {
-        String url = getBaseUrl() + "/personInfolastName?lastName=" + TEST_LAST_NAME;
+        String url = getBaseUrl() + "/personInfo?lastName=" + TEST_LAST_NAME;
         ResponseEntity<PersonInfoResponseDTO> response = restTemplate.getForEntity(
                 url,
                 PersonInfoResponseDTO.class);
@@ -353,7 +385,7 @@ class SafetyNetAlertsE2E {
     }
 
     private void verifyPersonWithoutMedicalRecord() {
-        String url = getBaseUrl() + "/personInfolastName?lastName=" + TEST_LAST_NAME;
+        String url = getBaseUrl() + "/personInfo?lastName=" + TEST_LAST_NAME;
         ResponseEntity<PersonInfoResponseDTO> response = restTemplate.getForEntity(
                 url,
                 PersonInfoResponseDTO.class);
@@ -407,7 +439,7 @@ class SafetyNetAlertsE2E {
     }
 
     private void verifyPersonRemoved() {
-        String url = getBaseUrl() + "/personInfolastName?lastName=" + TEST_LAST_NAME;
+        String url = getBaseUrl() + "/personInfo?lastName=" + TEST_LAST_NAME;
         ResponseEntity<PersonInfoResponseDTO> response = restTemplate.getForEntity(
                 url,
                 PersonInfoResponseDTO.class);

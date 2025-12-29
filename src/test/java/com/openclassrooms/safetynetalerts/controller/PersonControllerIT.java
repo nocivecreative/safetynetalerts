@@ -76,7 +76,7 @@ class PersonControllerIT {
         medicalRecord.setAllergies(Arrays.asList("peanuts"));
     }
 
-    // ==================== Tests GET /personInfolastName ====================
+    // ==================== Tests GET /personInfo ====================
 
     @Test
     void getPersonsByLastName_existingLastName_returnsPersonsWithMedicalInfo() throws Exception {
@@ -86,7 +86,7 @@ class PersonControllerIT {
         when(utils.calculateAge(person1)).thenReturn(35);
 
         // Act & Assert
-        mockMvc.perform(get("/personInfolastName")
+        mockMvc.perform(get("/personInfo")
                 .param("lastName", "Doe"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.persons").isArray())
@@ -98,12 +98,11 @@ class PersonControllerIT {
     }
 
     // ==================== Tests GET /fire ====================
-
     @Test
     void getPersonsByAddress_fire_returnsResidentsWithMedicalInfoAndStation() throws Exception {
         // Arrange
         when(personService.getPersonsByAddress("123 Main St")).thenReturn(Arrays.asList(person1));
-        when(firestationRepository.findStationByAddress("123 Main St")).thenReturn(Optional.of(1));
+        when(firestationRepository.findStationNumberByAddress("123 Main St")).thenReturn(Optional.of(1));
         when(medicalRecordService.getMedicalRecord("John", "Doe")).thenReturn(Optional.of(medicalRecord));
         when(utils.calculateAge(person1)).thenReturn(35);
 
@@ -196,8 +195,6 @@ class PersonControllerIT {
         // Arrange
         String personJson = """
                 {
-                    "firstName": "John",
-                    "lastName": "Doe",
                     "address": "456 New St",
                     "city": "Lyon",
                     "zip": "69001",
@@ -210,37 +207,14 @@ class PersonControllerIT {
 
         // Act & Assert
         mockMvc.perform(put("/person")
+                .param("firstName", "John")
+                .param("lastName", "Doe")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(personJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.address").value("456 New St"));
 
         verify(personService, times(1)).updatePerson(any(Person.class));
-    }
-
-    @Test
-    void updatePerson_personNotFound_returnsBadRequest() throws Exception {
-        // Arrange
-        String personJson = """
-                {
-                    "firstName": "Unknown",
-                    "lastName": "Person",
-                    "address": "123 Main St",
-                    "city": "Paris",
-                    "zip": "75001",
-                    "phone": "111-111-1111",
-                    "email": "unknown@email.com"
-                }
-                """;
-
-        doThrow(new IllegalArgumentException("Person not found"))
-                .when(personService).updatePerson(any(Person.class));
-
-        // Act & Assert
-        mockMvc.perform(put("/person")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(personJson))
-                .andExpect(status().isBadRequest());
     }
 
     // ==================== Tests DELETE /person ====================

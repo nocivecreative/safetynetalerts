@@ -3,13 +3,15 @@ package com.openclassrooms.safetynetalerts.utils;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,7 +25,7 @@ import com.openclassrooms.safetynetalerts.repository.MedicalRecordRepository;
  * Principe FIRST:
  * - Fast: Tests rapides avec mocks
  * - Independent: Chaque test est autonome
- * - Repeatable: Résultats déterministes avec date fixe de référence
+ * - Repeatable: Résultats déterministes avec Clock fixe (garanti la répétabilité dans le temps)
  * - Self-Validating: Assertions claires
  * - Timely: Tests pour chaque méthode utilitaire
  */
@@ -31,14 +33,14 @@ import com.openclassrooms.safetynetalerts.repository.MedicalRecordRepository;
 class UtilsUT {
 
     // Date fixe de référence pour garantir la répétabilité des tests
-    // NOTE: Cette date doit correspondre à la date actuelle car Utils.calculateAge() utilise LocalDate.now()
-    // Idéalement, Utils devrait accepter un Clock injectable pour une meilleure testabilité
+    // Utilisation d'un Clock fixe pour que les tests soient déterministes même dans le futur
     private static final LocalDate REFERENCE_DATE = LocalDate.of(2025, 12, 26);
+    private static final Instant FIXED_INSTANT = REFERENCE_DATE.atStartOfDay(ZoneId.systemDefault()).toInstant();
+    private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneId.systemDefault());
 
     @Mock
     private MedicalRecordRepository medicalRecordRepository;
 
-    @InjectMocks
     private Utils utils;
 
     private Person person;
@@ -46,6 +48,9 @@ class UtilsUT {
 
     @BeforeEach
     void setUp() {
+        // Créer Utils avec le Clock fixe pour garantir la répétabilité
+        utils = new Utils(medicalRecordRepository, FIXED_CLOCK);
+
         person = new Person();
         person.setFirstName("John");
         person.setLastName("Doe");

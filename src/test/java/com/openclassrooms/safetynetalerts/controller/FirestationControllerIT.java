@@ -1,15 +1,22 @@
 package com.openclassrooms.safetynetalerts.controller;
 
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.service.FirestationService;
@@ -80,21 +87,21 @@ class FirestationControllerIT {
         // Arrange
         String firestationJson = """
                 {
-                    "address": "123 Main St",
-                    "station": 2
+                    "station": 99
                 }
                 """;
 
-        doNothing().when(firestationService).updateMapping(any(Firestation.class));
+        doNothing().when(firestationService).updateMapping(anyString(), any(Firestation.class));
 
         // Act & Assert
         mockMvc.perform(put("/firestation")
+                .param("address", "123 Main St")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(firestationJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.station").value(2));
+                .andExpect(jsonPath("$.station").value(99));
 
-        verify(firestationService, times(1)).updateMapping(any(Firestation.class));
+        verify(firestationService, times(1)).updateMapping(anyString(), any(Firestation.class));
     }
 
     @Test
@@ -108,7 +115,7 @@ class FirestationControllerIT {
                 """;
 
         doThrow(new IllegalArgumentException("Adresse non trouvée"))
-                .when(firestationService).updateMapping(any(Firestation.class));
+                .when(firestationService).updateMapping(anyString(), any(Firestation.class));
 
         // Act & Assert
         mockMvc.perform(put("/firestation")
