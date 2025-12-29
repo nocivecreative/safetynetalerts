@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +20,7 @@ import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationHousehol
 import com.openclassrooms.safetynetalerts.dto.floodstations.FloodStationsResponseDTO;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.model.Person;
-import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
+import com.openclassrooms.safetynetalerts.service.FirestationService;
 import com.openclassrooms.safetynetalerts.service.MedicalRecordService;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 import com.openclassrooms.safetynetalerts.utils.Utils;
@@ -34,17 +33,18 @@ import com.openclassrooms.safetynetalerts.utils.Utils;
 public class FloodController {
     private final Logger logger = LoggerFactory.getLogger(FloodController.class);
 
-    @Autowired
-    private FirestationRepository firestationRepository;
+    private final FirestationService firestationService;
+    private final PersonService personService;
+    private final MedicalRecordService medicalRecordService;
+    private final Utils utils;
 
-    @Autowired
-    private PersonService personService;
-
-    @Autowired
-    private MedicalRecordService medicalRecordService;
-
-    @Autowired
-    private Utils utils;
+    public FloodController(FirestationService firestationService, PersonService personService,
+            MedicalRecordService medicalRecordService, Utils utils) {
+        this.firestationService = firestationService;
+        this.personService = personService;
+        this.medicalRecordService = medicalRecordService;
+        this.utils = utils;
+    }
 
     /**
      * GET /flood/stations?stations=<stations>
@@ -58,7 +58,7 @@ public class FloodController {
         logger.info("[CALL] GET /flood/stations?stations={}", stations);
 
         // 1. Récupérer toutes les adresses couvertes par ces stations
-        Set<String> addresses = firestationRepository.findAddressesByStations(stations);
+        Set<String> addresses = firestationService.getAddressesByStations(stations);
 
         // 2. Pour chaque adresse, récupérer les personnes et construire les DTOs
         List<FloodStationHouseholdDTO> households = new ArrayList<>();

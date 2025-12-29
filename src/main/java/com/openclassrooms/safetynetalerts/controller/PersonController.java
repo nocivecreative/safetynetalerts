@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -27,9 +26,10 @@ import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResidentDTO
 import com.openclassrooms.safetynetalerts.dto.fireaddress.FireAddressResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.personinfo.PersonInfoResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.personinfo.PersonMedicalProfileDTO;
+import com.openclassrooms.safetynetalerts.mapper.PersonMapper;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.model.Person;
-import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
+import com.openclassrooms.safetynetalerts.service.FirestationService;
 import com.openclassrooms.safetynetalerts.service.MedicalRecordService;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 import com.openclassrooms.safetynetalerts.utils.Utils;
@@ -42,17 +42,20 @@ import jakarta.validation.constraints.NotBlank;
 public class PersonController {
     private final Logger logger = LoggerFactory.getLogger(PersonController.class);
 
-    @Autowired
-    private PersonService personService;
+    private final PersonService personService;
+    private final FirestationService firestationService;
+    private final MedicalRecordService medicalRecordService;
+    private final Utils utils;
+    private final PersonMapper personMapper;
 
-    @Autowired
-    private FirestationRepository firestationRepository;
-
-    @Autowired
-    private MedicalRecordService medicalRecordService;
-
-    @Autowired
-    private Utils utils;
+    public PersonController(PersonService personService, FirestationService firestationService,
+            MedicalRecordService medicalRecordService, Utils utils, PersonMapper personMapper) {
+        this.personService = personService;
+        this.firestationService = firestationService;
+        this.medicalRecordService = medicalRecordService;
+        this.utils = utils;
+        this.personMapper = personMapper;
+    }
 
     /**
      * GET /personInfo?lastName=<lastName> (Erreur CDC)
@@ -117,9 +120,7 @@ public class PersonController {
         List<Person> personsAtAddress = personService.getPersonsByAddress(address);
 
         // 2. Récupérer le numéro de station pour cette adresse
-        Integer stationNumber = firestationRepository
-                .findStationNumberByAddress(address)
-                .orElse(-1); // On ne bloque pas avec un throw, mais code erreur -1
+        Integer stationNumber = firestationService.getStationNumberByAddress(address);
 
         // 3. Mapper vers DTOs (avec infos médicales)
         List<FireAddressResidentDTO> residents = new ArrayList<>();
@@ -171,20 +172,13 @@ public class PersonController {
                 personDTO.getFirstName(), personDTO.getLastName());
 
         // Mapper DTO → Entity
-        Person person = new Person(
-                personDTO.getFirstName(),
-                personDTO.getLastName(),
-                personDTO.getAddress(),
-                personDTO.getCity(),
-                personDTO.getZip(),
-                personDTO.getPhone(),
-                personDTO.getEmail());
+        Person person = personMapper.toEntity(personDTO);
 
         // Appeler le service
         personService.addPerson(person);
 
         // Mapper Entity → DTO pour la réponse
-        PersonDTO response = mapEntityToDto(person);
+        PersonDTO response = personMapper.toDto(person);
 
         logger.info("[RESPONSE] POST /person -> Person successfully added");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -199,20 +193,15 @@ public class PersonController {
         logger.info("[CALL] PUT /person -> Updating person {} {}", firstName, lastName);
 
         // Mapper DTO → Entity
-        Person person = new Person(
-                firstName,
-                lastName,
-                personDTO.getAddress(),
-                personDTO.getCity(),
-                personDTO.getZip(),
-                personDTO.getPhone(),
-                personDTO.getEmail());
+        Person person = personMapper.toEntity(personDTO);
+        person.setFirstName(firstName);
+        person.setLastName(lastName);
 
         // Appeler le service
         personService.updatePerson(person);
 
         // Mapper Entity → DTO pour la réponse
-        PersonDTO response = mapEntityToDto(person);
+        PersonDTO response = personMapper.toDto(person);
 
         logger.info("[RESPONSE] PUT /person -> Person successfully updated");
         return ResponseEntity.ok(response);
@@ -230,18 +219,5 @@ public class PersonController {
 
         logger.info("[RESPONSE] DELETE /person -> Person successfully deleted");
         return ResponseEntity.noContent().build();
-    }
-
-    // --- Méthodes privées de mapping ---
-
-    private PersonDTO mapEntityToDto(Person p) {
-        return new PersonDTO(
-                p.getFirstName(),
-                p.getLastName(),
-                p.getAddress(),
-                p.getCity(),
-                p.getZip(),
-                p.getPhone(),
-                p.getEmail());
     }
 }
