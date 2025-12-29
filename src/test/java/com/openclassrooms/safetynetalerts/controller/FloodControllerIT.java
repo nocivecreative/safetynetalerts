@@ -19,7 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.model.Person;
-import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
+import com.openclassrooms.safetynetalerts.service.FirestationService;
 import com.openclassrooms.safetynetalerts.service.MedicalRecordService;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 import com.openclassrooms.safetynetalerts.utils.Utils;
@@ -36,7 +36,7 @@ class FloodControllerIT {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private FirestationRepository firestationRepository;
+    private FirestationService firestationService;
 
     @MockitoBean
     private PersonService personService;
@@ -81,7 +81,7 @@ class FloodControllerIT {
         List<Integer> stations = Arrays.asList(1, 2);
         Set<String> addresses = Set.of("123 Main St", "456 Oak Ave");
 
-        when(firestationRepository.findAddressesByStations(stations)).thenReturn(addresses);
+        when(firestationService.getAddressesByStations(stations)).thenReturn(addresses);
         when(personService.getPersonsByAddress("123 Main St")).thenReturn(Arrays.asList(person1));
         when(personService.getPersonsByAddress("456 Oak Ave")).thenReturn(Arrays.asList(person2));
         when(medicalRecordService.getMedicalRecord("John", "Doe")).thenReturn(Optional.of(medicalRecord));
@@ -100,14 +100,14 @@ class FloodControllerIT {
                 .andExpect(jsonPath("$.households[0].residents[0].phoneNumber").exists())
                 .andExpect(jsonPath("$.households[0].residents[0].age").exists());
 
-        verify(firestationRepository, times(1)).findAddressesByStations(stations);
+        verify(firestationService, times(1)).getAddressesByStations(stations);
     }
 
     @Test
     void getPersonsByStations_noAddresses_returnsEmptyList() throws Exception {
         // Arrange
         List<Integer> stations = Arrays.asList(99);
-        when(firestationRepository.findAddressesByStations(stations)).thenReturn(Collections.emptySet());
+        when(firestationService.getAddressesByStations(stations)).thenReturn(Collections.emptySet());
 
         // Act & Assert
         mockMvc.perform(get("/flood/stations")
@@ -115,6 +115,6 @@ class FloodControllerIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.households").isEmpty());
 
-        verify(firestationRepository, times(1)).findAddressesByStations(stations);
+        verify(firestationService, times(1)).getAddressesByStations(stations);
     }
 }

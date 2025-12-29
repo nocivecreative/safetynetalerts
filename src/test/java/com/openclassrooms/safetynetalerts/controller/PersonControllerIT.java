@@ -12,6 +12,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.openclassrooms.safetynetalerts.dto.PersonDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -24,9 +26,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.openclassrooms.safetynetalerts.mapper.PersonMapper;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.model.Person;
-import com.openclassrooms.safetynetalerts.repository.FirestationRepository;
+import com.openclassrooms.safetynetalerts.service.FirestationService;
 import com.openclassrooms.safetynetalerts.service.MedicalRecordService;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 import com.openclassrooms.safetynetalerts.utils.Utils;
@@ -46,13 +49,16 @@ class PersonControllerIT {
     private PersonService personService;
 
     @MockitoBean
-    private FirestationRepository firestationRepository;
+    private FirestationService firestationService;
 
     @MockitoBean
     private MedicalRecordService medicalRecordService;
 
     @MockitoBean
     private Utils utils;
+
+    @MockitoBean
+    private PersonMapper personMapper;
 
     private Person person1;
     private MedicalRecord medicalRecord;
@@ -74,6 +80,26 @@ class PersonControllerIT {
         medicalRecord.setBirthdate("01/01/1990");
         medicalRecord.setMedications(Arrays.asList("aspirin:100mg"));
         medicalRecord.setAllergies(Arrays.asList("peanuts"));
+
+        // Mock PersonMapper to return DTOs
+        when(personMapper.toEntity(any(PersonDTO.class))).thenAnswer(invocation -> {
+            PersonDTO dto = invocation.getArgument(0);
+            Person p = new Person();
+            p.setFirstName(dto.getFirstName());
+            p.setLastName(dto.getLastName());
+            p.setAddress(dto.getAddress());
+            p.setCity(dto.getCity());
+            p.setZip(dto.getZip());
+            p.setPhone(dto.getPhone());
+            p.setEmail(dto.getEmail());
+            return p;
+        });
+
+        when(personMapper.toDto(any(Person.class))).thenAnswer(invocation -> {
+            Person p = invocation.getArgument(0);
+            return new PersonDTO(p.getFirstName(), p.getLastName(), p.getAddress(),
+                    p.getCity(), p.getZip(), p.getPhone(), p.getEmail());
+        });
     }
 
     // ==================== Tests GET /personInfo ====================
@@ -102,7 +128,7 @@ class PersonControllerIT {
     void getPersonsByAddress_fire_returnsResidentsWithMedicalInfoAndStation() throws Exception {
         // Arrange
         when(personService.getPersonsByAddress("123 Main St")).thenReturn(Arrays.asList(person1));
-        when(firestationRepository.findStationNumberByAddress("123 Main St")).thenReturn(Optional.of(1));
+        when(firestationService.getStationNumberByAddress("123 Main St")).thenReturn(1);
         when(medicalRecordService.getMedicalRecord("John", "Doe")).thenReturn(Optional.of(medicalRecord));
         when(utils.calculateAge(person1)).thenReturn(35);
 
