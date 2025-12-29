@@ -1,5 +1,6 @@
 package com.openclassrooms.safetynetalerts.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -7,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PersonDTO {
 
+    @NotBlank(message = "First Name required")
     private final String firstName;
+    @NotBlank(message = "Last Name required")
     private final String lastName;
     private final String address;
     private final String city;

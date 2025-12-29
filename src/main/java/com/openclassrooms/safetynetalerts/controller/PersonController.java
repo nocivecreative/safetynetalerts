@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,203 +34,218 @@ import com.openclassrooms.safetynetalerts.service.MedicalRecordService;
 import com.openclassrooms.safetynetalerts.service.PersonService;
 import com.openclassrooms.safetynetalerts.utils.Utils;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+
 @RestController
+@Validated
 public class PersonController {
-        private final Logger logger = LoggerFactory.getLogger(PersonController.class);
+    private final Logger logger = LoggerFactory.getLogger(PersonController.class);
 
-        @Autowired
-        private PersonService personService;
+    @Autowired
+    private PersonService personService;
 
-        @Autowired
-        private FirestationRepository firestationRepository;
+    @Autowired
+    private FirestationRepository firestationRepository;
 
-        @Autowired
-        private MedicalRecordService medicalRecordService;
+    @Autowired
+    private MedicalRecordService medicalRecordService;
 
-        @Autowired
-        private Utils utils;
+    @Autowired
+    private Utils utils;
 
-        /**
-         * GET /personInfolastName?lastName=<lastName>
-         * Retourne les infos et dossier médical des personnes avec ce nom
-         */
-        @GetMapping("/personInfolastName")
-        public ResponseEntity<PersonInfoResponseDTO> getPersonsByLastName(
-                        @RequestParam("lastName") String lastName) {
+    /**
+     * GET /personInfo?lastName=<lastName> (Erreur CDC)
+     * Retourne les infos et dossier médical des personnes avec ce nom
+     */
+    @GetMapping("/personInfo")
+    public ResponseEntity<PersonInfoResponseDTO> getPersonsByLastName(
+            @RequestParam("lastName") String lastName) {
 
-                logger.info("[CALL] GET /personInfolastName?lastName={}", lastName);
+        logger.info("[CALL] GET /personInfo?lastName={}", lastName);
 
-                // 1. Récupérer toutes les personnes avec ce nom
-                List<Person> persons = personService.getPersonsByLastName(lastName);
+        // 1. Récupérer toutes les personnes avec ce nom
+        List<Person> persons = personService.getPersonsByLastName(lastName);
 
-                // 2. Mapper vers DTOs (avec infos médicales)
-                List<PersonMedicalProfileDTO> profiles = new ArrayList<>();
+        // 2. Mapper vers DTOs (avec infos médicales)
+        List<PersonMedicalProfileDTO> profiles = new ArrayList<>();
 
-                for (Person person : persons) {
-                        // Récupérer le dossier médical
-                        Optional<MedicalRecord> medicalRecordOpt = medicalRecordService.getMedicalRecord(
-                                        person.getFirstName(),
-                                        person.getLastName());
+        for (Person person : persons) {
+            // Récupérer le dossier médical
+            Optional<MedicalRecord> medicalRecordOpt = medicalRecordService.getMedicalRecord(
+                    person.getFirstName(),
+                    person.getLastName());
 
-                        // Extraire medications et allergies
-                        List<String> medications = medicalRecordOpt
-                                        .map(MedicalRecord::getMedications)
-                                        .orElse(Collections.emptyList());
+            // Extraire medications et allergies
+            List<String> medications = medicalRecordOpt
+                    .map(MedicalRecord::getMedications)
+                    .orElse(Collections.emptyList());
 
-                        List<String> allergies = medicalRecordOpt
-                                        .map(MedicalRecord::getAllergies)
-                                        .orElse(Collections.emptyList());
+            List<String> allergies = medicalRecordOpt
+                    .map(MedicalRecord::getAllergies)
+                    .orElse(Collections.emptyList());
 
-                        // Créer le DTO
-                        profiles.add(new PersonMedicalProfileDTO(
-                                        person.getLastName(),
-                                        person.getAddress(),
-                                        utils.calculateAge(person),
-                                        person.getEmail(),
-                                        new MedicalHistoryDTO(medications, allergies)));
-                }
-
-                // 3. Construire le DTO de réponse
-                PersonInfoResponseDTO response = new PersonInfoResponseDTO(profiles);
-
-                logger.info("[RESPONSE] GET /personInfolastName -> {} personnes trouvées", profiles.size());
-
-                return ResponseEntity.ok(response);
+            // Créer le DTO
+            profiles.add(new PersonMedicalProfileDTO(
+                    person.getLastName(),
+                    person.getAddress(),
+                    utils.calculateAge(person),
+                    person.getEmail(),
+                    new MedicalHistoryDTO(medications, allergies)));
         }
 
-        /**
-         * GET /fire?address=<address>
-         * Retourne les habitants à une adresse avec leurs infos médicales et le numéro
-         * de station
-         */
-        @GetMapping("/fire")
-        public ResponseEntity<FireAddressResponseDTO> getPersonsByAddress(
-                        @RequestParam("address") String address) {
+        // 3. Construire le DTO de réponse
+        PersonInfoResponseDTO response = new PersonInfoResponseDTO(profiles);
 
-                logger.info("[CALL] GET /fire?address={}", address);
+        logger.info("[RESPONSE] GET /personInfo -> {} personnes trouvées", profiles.size());
 
-                // 1. Récupérer toutes les personnes à l'adresse
-                List<Person> personsAtAddress = personService.getPersonsByAddress(address);
+        return ResponseEntity.ok(response);
+    }
 
-                // 2. Récupérer le numéro de station pour cette adresse
-                Integer stationNumber = firestationRepository
-                                .findStationByAddress(address)
-                                .orElse(null);
+    /**
+     * GET /fire?address=<address>
+     * Retourne les habitants à une adresse avec leurs infos médicales et le numéro
+     * de station
+     */
+    @GetMapping("/fire")
+    public ResponseEntity<FireAddressResponseDTO> getPersonsByAddress(
+            @RequestParam("address") String address) {
 
-                // 3. Mapper vers DTOs (avec infos médicales)
-                List<FireAddressResidentDTO> residents = new ArrayList<>();
+        logger.info("[CALL] GET /fire?address={}", address);
 
-                for (Person person : personsAtAddress) {
-                        // Récupérer le dossier médical
-                        Optional<MedicalRecord> medicalRecordOpt = medicalRecordService.getMedicalRecord(
-                                        person.getFirstName(),
-                                        person.getLastName());
+        // 1. Récupérer toutes les personnes à l'adresse
+        List<Person> personsAtAddress = personService.getPersonsByAddress(address);
 
-                        // Extraire medications et allergies
-                        List<String> medications = medicalRecordOpt
-                                        .map(MedicalRecord::getMedications)
-                                        .orElse(Collections.emptyList());
+        // 2. Récupérer le numéro de station pour cette adresse
+        Integer stationNumber = firestationRepository
+                .findStationNumberByAddress(address)
+                .orElse(-1); // On ne bloque pas avec un throw, mais code erreur -1
 
-                        List<String> allergies = medicalRecordOpt
-                                        .map(MedicalRecord::getAllergies)
-                                        .orElse(Collections.emptyList());
+        // 3. Mapper vers DTOs (avec infos médicales)
+        List<FireAddressResidentDTO> residents = new ArrayList<>();
 
-                        // Créer le DTO
-                        residents.add(new FireAddressResidentDTO(
-                                        person.getLastName(),
-                                        person.getPhone(),
-                                        new MedicalHistoryDTO(medications, allergies),
-                                        utils.calculateAge(person)));
-                }
+        for (Person person : personsAtAddress) {
+            // Récupérer le dossier médical
+            Optional<MedicalRecord> medicalRecordOpt = medicalRecordService.getMedicalRecord(
+                    person.getFirstName(),
+                    person.getLastName());
 
-                // 4. Construire le DTO de réponse
-                FireAddressResponseDTO response = new FireAddressResponseDTO(residents, stationNumber);
+            // Extraire medications et allergies
+            List<String> medications = medicalRecordOpt
+                    .map(MedicalRecord::getMedications)
+                    .orElse(Collections.emptyList());
 
-                logger.info("[RESPONSE] GET /fire -> {} résidents, station={}", residents.size(), stationNumber);
+            List<String> allergies = medicalRecordOpt
+                    .map(MedicalRecord::getAllergies)
+                    .orElse(Collections.emptyList());
 
-                return ResponseEntity.ok(response);
+            // Créer le DTO
+            residents.add(new FireAddressResidentDTO(
+                    person.getLastName(),
+                    person.getPhone(),
+                    new MedicalHistoryDTO(medications, allergies),
+                    utils.calculateAge(person)));
         }
 
-        @GetMapping("/communityEmail")
-        public ResponseEntity<CommunityEmailResponseDTO> getEmailsByCity(
-                        @RequestParam("city") String city) {
+        // 4. Construire le DTO de réponse
+        FireAddressResponseDTO response = new FireAddressResponseDTO(residents, stationNumber);
 
-                Set<String> emails = personService.getEmailsByCity(city);
-                return ResponseEntity.ok(new CommunityEmailResponseDTO(emails));
-        }
+        logger.info("[RESPONSE] GET /fire -> {} résidents, station={}", residents.size(), stationNumber);
 
-        @PostMapping("/person")
-        public ResponseEntity<PersonDTO> addPerson(@RequestBody PersonDTO personDTO) {
-                logger.info("[CALL] POST /person -> Adding person {} {}",
-                                personDTO.getFirstName(), personDTO.getLastName());
+        return ResponseEntity.ok(response);
+    }
 
-                // Mapper DTO → Entity
-                Person person = mapDtoToEntity(personDTO);
+    @GetMapping("/communityEmail")
+    public ResponseEntity<CommunityEmailResponseDTO> getEmailsByCity(
+            @RequestParam("city") String city) {
 
-                // Appeler le service
-                personService.addPerson(person);
+        Set<String> emails = personService.getEmailsByCity(city);
+        return ResponseEntity.ok(new CommunityEmailResponseDTO(emails));
+    }
 
-                // Mapper Entity → DTO pour la réponse
-                PersonDTO response = mapEntityToDto(person);
+    @PostMapping("/person")
+    public ResponseEntity<PersonDTO> addPerson(
+            @Valid @RequestBody PersonDTO personDTO) {
 
-                logger.info("[RESPONSE] POST /person -> Person successfully added");
-                return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        }
+        logger.info("[CALL] POST /person -> Adding person {} {}",
+                personDTO.getFirstName(), personDTO.getLastName());
 
-        @PutMapping("/person")
-        public ResponseEntity<PersonDTO> updatePerson(@RequestBody PersonDTO personDTO) {
-                logger.info("[CALL] PUT /person -> Updating person {} {}",
-                                personDTO.getFirstName(), personDTO.getLastName());
+        // Mapper DTO → Entity
+        Person person = mapDtoToEntity(personDTO);
 
-                // Mapper DTO → Entity
-                Person person = mapDtoToEntity(personDTO);
+        // Appeler le service
+        personService.addPerson(person);
 
-                // Appeler le service
-                personService.updatePerson(person);
+        // Mapper Entity → DTO pour la réponse
+        PersonDTO response = mapEntityToDto(person);
 
-                // Mapper Entity → DTO pour la réponse
-                PersonDTO response = mapEntityToDto(person);
+        logger.info("[RESPONSE] POST /person -> Person successfully added");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
-                logger.info("[RESPONSE] PUT /person -> Person successfully updated");
-                return ResponseEntity.ok(response);
-        }
+    @PutMapping("/person")
+    public ResponseEntity<PersonDTO> updatePerson(
+            @RequestParam("firstName") @NotBlank(message = "First name is required") String firstName,
+            @RequestParam("lastName") @NotBlank(message = "Last name is required") String lastName,
+            @RequestBody PersonDTO personDTO) {
 
-        @DeleteMapping("/person")
-        public ResponseEntity<Void> deletePerson(
-                        @RequestParam String firstName,
-                        @RequestParam String lastName) {
+        logger.info("[CALL] PUT /person -> Updating person {} {}", firstName, lastName);
 
-                logger.info("[CALL] DELETE /person -> Deleting person {} {}", firstName, lastName);
+        // Mapper DTO → Entity
+        Person person = new Person(
+                firstName,
+                lastName,
+                personDTO.getAddress(),
+                personDTO.getCity(),
+                personDTO.getZip(),
+                personDTO.getPhone(),
+                personDTO.getEmail());
 
-                // Appeler le service
-                personService.deletePerson(firstName, lastName);
+        // Appeler le service
+        personService.updatePerson(person);
 
-                logger.info("[RESPONSE] DELETE /person -> Person successfully deleted");
-                return ResponseEntity.noContent().build();
-        }
+        // Mapper Entity → DTO pour la réponse
+        PersonDTO response = mapEntityToDto(person);
 
-        // --- Méthodes privées de mapping ---
+        logger.info("[RESPONSE] PUT /person -> Person successfully updated");
+        return ResponseEntity.ok(response);
+    }
 
-        private Person mapDtoToEntity(PersonDTO dto) {
-                Person person = new Person();
-                person.setFirstName(dto.getFirstName());
-                person.setLastName(dto.getLastName());
-                person.setAddress(dto.getAddress());
-                person.setCity(dto.getCity());
-                person.setZip(dto.getZip());
-                person.setPhone(dto.getPhone());
-                person.setEmail(dto.getEmail());
-                return person;
-        }
+    @DeleteMapping("/person")
+    public ResponseEntity<Void> deletePerson(
+            @RequestParam("firstName") @NotBlank(message = "First name is required") String firstName,
+            @RequestParam("lastName") @NotBlank(message = "Last name is required") String lastName) {
 
-        private PersonDTO mapEntityToDto(Person person) {
-                return new PersonDTO(
-                                person.getFirstName(),
-                                person.getLastName(),
-                                person.getAddress(),
-                                person.getCity(),
-                                person.getZip(),
-                                person.getPhone(),
-                                person.getEmail());
-        }
+        logger.info("[CALL] DELETE /person -> Deleting person {} {}", firstName, lastName);
+
+        // Appeler le service
+        personService.deletePerson(firstName, lastName);
+
+        logger.info("[RESPONSE] DELETE /person -> Person successfully deleted");
+        return ResponseEntity.noContent().build();
+    }
+
+    // --- Méthodes privées de mapping ---
+
+    private Person mapDtoToEntity(PersonDTO dto) { /* TODO check utililté des fct mapXXToYY des ctrls */
+        return new Person(
+                dto.getFirstName(),
+                dto.getLastName(),
+                dto.getAddress(),
+                dto.getCity(),
+                dto.getZip(),
+                dto.getPhone(),
+                dto.getEmail());
+    }
+
+    private PersonDTO mapEntityToDto(Person p) {
+        return new PersonDTO(
+                p.getFirstName(),
+                p.getLastName(),
+                p.getAddress(),
+                p.getCity(),
+                p.getZip(),
+                p.getPhone(),
+                p.getEmail());
+    }
 }

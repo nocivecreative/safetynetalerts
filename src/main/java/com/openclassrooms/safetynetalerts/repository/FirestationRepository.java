@@ -145,10 +145,16 @@ public class FirestationRepository {
      * @return un {@link Optional} contenant le numéro de caserne si trouvé, sinon
      *         {@link Optional#empty()}
      */
-    public Optional<Integer> findStationByAddress(String address) {
+    public Optional<Integer> findStationNumberByAddress(String address) {
         return data.getFirestations().stream()
                 .filter(fs -> fs.getAddress().equals(address))
                 .map(Firestation::getStation)
+                .findFirst();
+    }
+
+    public Optional<Firestation> findStationByAddress(String address) {
+        return data.getFirestations().stream()
+                .filter(fs -> fs.getAddress().equals(address))
                 .findFirst();
     }
 
@@ -189,15 +195,16 @@ public class FirestationRepository {
      * Met à jour un mapping caserne/adresse existant.
      *
      * <p>
-     * Cette méthode utilise une stratégie de suppression/réinsertion :
-     * tous les mappings avec le numéro de caserne sont d'abord supprimés,
-     * puis le nouveau mapping est ajouté.
+     * Cette méthode met à jour le numéro d'un caserne
      *
      * @param firestation le nouveau mapping caserne/adresse
      */
     public void updateFirestation(Firestation firestation) {
-        deleteFirestationByStation(firestation.getStation());
-        addFirestation(firestation);
+
+        findStationByAddress(firestation.getAddress())
+                .ifPresent(existingFs -> {
+                    existingFs.setStation(firestation.getStation());
+                });
     }
 
     /**
@@ -205,13 +212,14 @@ public class FirestationRepository {
      *
      * <p>
      * Cette méthode supprime le mapping pour l'adresse spécifiée.
-     * Si aucun mapping n'existe pour cette adresse, aucune erreur n'est levée
-     * (suppression idempotente).
      *
      * @param address l'adresse dont on veut supprimer le mapping
+     * @throws IllegalArgumentException si l'adresse spécifiée n'est pas trouvée
      */
     public void deleteFirestationByAddress(String address) {
-        data.getFirestations().removeIf(p -> p.getAddress().equals(address));
+        if (!data.getFirestations().removeIf(p -> p.getAddress().equals(address))) {
+            throw new IllegalArgumentException("Aucune caserne trouvée à cette adresse");
+        }
     }
 
     /**
@@ -221,12 +229,14 @@ public class FirestationRepository {
      * Cette méthode supprime tous les mappings pour la caserne spécifiée.
      * Une caserne peut couvrir plusieurs adresses, donc cette opération peut
      * supprimer plusieurs mappings en une seule fois.
-     * Si aucun mapping n'existe pour cette caserne, aucune erreur n'est levée
-     * (suppression idempotente).
      *
      * @param station le numéro de caserne dont on veut supprimer tous les mappings
+     * @throws IllegalArgumentException si le numéro de caserne spécifié n'est pas
+     *                                  trouvée
      */
     public void deleteFirestationByStation(int station) {
-        data.getFirestations().removeIf(p -> p.getStation() == (station));
+        if (!data.getFirestations().removeIf(p -> p.getStation() == (station))) {
+            throw new IllegalArgumentException("Le numéro de caserne indiqué n'existe pas");
+        }
     }
 }

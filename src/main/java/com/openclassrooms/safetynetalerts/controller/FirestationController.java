@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,8 +18,12 @@ import com.openclassrooms.safetynetalerts.dto.firestation.FirestationDTO;
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.service.FirestationService;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+
 @RestController
 @RequestMapping("/firestation")
+@Validated
 public class FirestationController {
     private final Logger logger = LoggerFactory.getLogger(FirestationController.class);
 
@@ -30,7 +35,7 @@ public class FirestationController {
      * Ajoute un nouveau mapping caserne/adresse
      */
     @PostMapping
-    public ResponseEntity<FirestationDTO> addMapping(@RequestBody FirestationDTO firestationDTO) {
+    public ResponseEntity<FirestationDTO> addMapping(@Valid @RequestBody FirestationDTO firestationDTO) {
         logger.info("[CALL] POST /firestation -> Adding mapping address={}, station={}",
                 firestationDTO.getAddress(), firestationDTO.getStation());
 
@@ -49,18 +54,24 @@ public class FirestationController {
 
     /**
      * PUT /firestation
+     * <p>
      * Met à jour le numéro de station pour une adresse
+     * 
+     * @param address        l'adresse de la caserne à supprimer
+     * @param firestationDTO le DTO caserne
      */
     @PutMapping
-    public ResponseEntity<FirestationDTO> updateMapping(@RequestBody FirestationDTO firestationDTO) {
-        logger.info("[CALL] PUT /firestation -> Updating mapping address={}, new station={}",
-                firestationDTO.getAddress(), firestationDTO.getStation());
+    public ResponseEntity<FirestationDTO> updateStation(
+            @RequestParam("address") @NotBlank(message = "address is required") String address,
+            @RequestBody FirestationDTO firestationDTO) {
+        logger.info("[CALL] PUT /firestation -> Updating mapping address={}, new station number={}",
+                address, firestationDTO.getStation());
 
         // Mapper DTO vers Entité
-        Firestation firestation = mapDtoToEntity(firestationDTO);
+        Firestation firestation = new Firestation(address, firestationDTO.getStation());
 
         // Appeler le service
-        firestationService.updateMapping(firestation);
+        firestationService.updateMapping(address, firestation);
 
         // Mapper Entité vers DTO pour la réponse
         FirestationDTO response = mapEntityToDto(firestation);
@@ -70,13 +81,19 @@ public class FirestationController {
     }
 
     /**
-     * DELETE /firestation?address=<address> OU ?station=<station>
-     * Supprime un mapping (soit par adresse, soit par numéro de station)
+     * DELETE /firestation?address="adresse" OU /firestation?station="numéro"
+     * 
+     * <p>
+     * Supprime un mapping (soit par adresse, soit par numéro de caserne)
+     * 
+     * @param address l'adresse de la caserne à supprimer (optional)
+     * @param station le numéro de la caserne à supprimer (optional)
+     * @return ResponseEntity sans contenu (HTTP 204) en cas de suppression réussie
      */
     @DeleteMapping
     public ResponseEntity<Void> deleteMapping(
-            @RequestParam(required = false) String address,
-            @RequestParam(required = false) Integer station) {
+            @RequestParam(name = "address", required = false) String address,
+            @RequestParam(name = "station", required = false) Integer station) {
 
         logger.info("[CALL] DELETE /firestation -> address={}, station={}", address, station);
 
@@ -93,18 +110,17 @@ public class FirestationController {
      * Mappe un DTO vers une entité Firestation
      */
     private Firestation mapDtoToEntity(FirestationDTO dto) {
-        Firestation firestation = new Firestation();
-        firestation.setAddress(dto.getAddress());
-        firestation.setStation(dto.getStation());
-        return firestation;
+        return new Firestation(
+                dto.getAddress(),
+                dto.getStation());
     }
 
     /**
      * Mappe une entité Firestation vers un DTO
      */
-    private FirestationDTO mapEntityToDto(Firestation firestation) {
+    private FirestationDTO mapEntityToDto(Firestation fs) {
         return new FirestationDTO(
-                firestation.getAddress(),
-                firestation.getStation());
+                fs.getAddress(),
+                fs.getStation());
     }
 }

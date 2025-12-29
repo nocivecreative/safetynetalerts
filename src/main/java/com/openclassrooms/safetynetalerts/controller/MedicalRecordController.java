@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,8 +18,12 @@ import com.openclassrooms.safetynetalerts.dto.medicalrecord.MedicalRecordDTO;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.service.MedicalRecordService;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+
 @RestController
 @RequestMapping("/medicalRecord")
+@Validated
 public class MedicalRecordController {
     private final Logger logger = LoggerFactory.getLogger(MedicalRecordController.class);
 
@@ -31,7 +36,7 @@ public class MedicalRecordController {
      */
     @PostMapping
     public ResponseEntity<MedicalRecordDTO> createMedicalRecord(
-            @RequestBody MedicalRecordDTO medicalRecordDTO) {
+            @Valid @RequestBody MedicalRecordDTO medicalRecordDTO) {
 
         logger.info("[CALL] POST /medicalRecord -> Creating medical record for {} {}",
                 medicalRecordDTO.getFirstName(), medicalRecordDTO.getLastName());
@@ -55,15 +60,20 @@ public class MedicalRecordController {
      */
     @PutMapping
     public ResponseEntity<MedicalRecordDTO> updateMedicalRecord(
-            @RequestParam("firstName") String firstName,
-            @RequestParam("lastName") String lastName,
+            @RequestParam("firstName") @NotBlank(message = "First name required") String firstName,
+            @RequestParam("lastName") @NotBlank(message = "Last name required") String lastName,
             @RequestBody MedicalRecordDTO medicalRecordDTO) {
 
         logger.info("[CALL] PUT /medicalRecord -> Updating medical record for {} {}",
                 firstName, lastName);
 
         // Mapper DTO → Entity
-        MedicalRecord medicalRecord = mapDtoToEntity(medicalRecordDTO);
+        MedicalRecord medicalRecord = new MedicalRecord(
+                firstName,
+                lastName,
+                medicalRecordDTO.getBirthdate(),
+                medicalRecordDTO.getMedications(),
+                medicalRecordDTO.getAllergies());
 
         // Appeler le service
         MedicalRecord updatedRecord = medicalRecordService.updateMedicalRecord(
@@ -82,8 +92,8 @@ public class MedicalRecordController {
      */
     @DeleteMapping
     public ResponseEntity<Void> deleteMedicalRecord(
-            @RequestParam("firstName") String firstName,
-            @RequestParam("lastName") String lastName) {
+            @RequestParam("firstName") @NotBlank(message = "First name is required") String firstName,
+            @RequestParam("lastName") @NotBlank(message = "Last name is required") String lastName) {
 
         logger.info("[CALL] DELETE /medicalRecord -> Deleting medical record for {} {}",
                 firstName, lastName);
@@ -101,13 +111,12 @@ public class MedicalRecordController {
      * Mappe un DTO vers une entité MedicalRecord
      */
     private MedicalRecord mapDtoToEntity(MedicalRecordDTO dto) {
-        MedicalRecord record = new MedicalRecord();
-        record.setFirstName(dto.getFirstName());
-        record.setLastName(dto.getLastName());
-        record.setBirthdate(dto.getBirthdate());
-        record.setMedications(dto.getMedications());
-        record.setAllergies(dto.getAllergies());
-        return record;
+        return new MedicalRecord(
+                dto.getFirstName(),
+                dto.getLastName(),
+                dto.getBirthdate(),
+                dto.getMedications(),
+                dto.getAllergies());
     }
 
     /**
