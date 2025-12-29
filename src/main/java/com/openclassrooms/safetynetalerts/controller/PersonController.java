@@ -171,7 +171,14 @@ public class PersonController {
                 personDTO.getFirstName(), personDTO.getLastName());
 
         // Mapper DTO → Entity
-        Person person = mapDtoToEntity(personDTO);
+        Person person = new Person(
+                personDTO.getFirstName(),
+                personDTO.getLastName(),
+                personDTO.getAddress(),
+                personDTO.getCity(),
+                personDTO.getZip(),
+                personDTO.getPhone(),
+                personDTO.getEmail());
 
         // Appeler le service
         personService.addPerson(person);
@@ -226,17 +233,6 @@ public class PersonController {
     }
 
     // --- Méthodes privées de mapping ---
-
-    private Person mapDtoToEntity(PersonDTO dto) { /* TODO check utililté des fct mapXXToYY des ctrls */
-        return new Person(
-                dto.getFirstName(),
-                dto.getLastName(),
-                dto.getAddress(),
-                dto.getCity(),
-                dto.getZip(),
-                dto.getPhone(),
-                dto.getEmail());
-    }
 
     private PersonDTO mapEntityToDto(Person p) {
         return new PersonDTO(

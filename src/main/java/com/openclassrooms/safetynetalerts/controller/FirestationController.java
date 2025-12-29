@@ -40,7 +40,9 @@ public class FirestationController {
                 firestationDTO.getAddress(), firestationDTO.getStation());
 
         // Mapper DTO vers Entité
-        Firestation firestation = mapDtoToEntity(firestationDTO);
+        Firestation firestation = new Firestation(
+                firestationDTO.getAddress(),
+                firestationDTO.getStation());
 
         // Appeler le service
         firestationService.addMapping(firestation);
@@ -106,18 +108,6 @@ public class FirestationController {
 
     // --- Méthodes privées de mapping ---
 
-    /**
-     * Mappe un DTO vers une entité Firestation
-     */
-    private Firestation mapDtoToEntity(FirestationDTO dto) {
-        return new Firestation(
-                dto.getAddress(),
-                dto.getStation());
-    }
-
-    /**
-     * Mappe une entité Firestation vers un DTO
-     */
     private FirestationDTO mapEntityToDto(Firestation fs) {
         return new FirestationDTO(
                 fs.getAddress(),

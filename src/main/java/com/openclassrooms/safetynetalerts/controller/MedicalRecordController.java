@@ -42,7 +42,12 @@ public class MedicalRecordController {
                 medicalRecordDTO.getFirstName(), medicalRecordDTO.getLastName());
 
         // Mapper DTO → Entity
-        MedicalRecord medicalRecord = mapDtoToEntity(medicalRecordDTO);
+        MedicalRecord medicalRecord = new MedicalRecord(
+                medicalRecordDTO.getFirstName(),
+                medicalRecordDTO.getLastName(),
+                medicalRecordDTO.getBirthdate(),
+                medicalRecordDTO.getMedications(),
+                medicalRecordDTO.getAllergies());
 
         // Appeler le service
         MedicalRecord createdRecord = medicalRecordService.createMedicalRecord(medicalRecord);
@@ -107,21 +112,6 @@ public class MedicalRecordController {
 
     // --- Méthodes privées de mapping ---
 
-    /**
-     * Mappe un DTO vers une entité MedicalRecord
-     */
-    private MedicalRecord mapDtoToEntity(MedicalRecordDTO dto) {
-        return new MedicalRecord(
-                dto.getFirstName(),
-                dto.getLastName(),
-                dto.getBirthdate(),
-                dto.getMedications(),
-                dto.getAllergies());
-    }
-
-    /**
-     * Mappe une entité MedicalRecord vers un DTO
-     */
     private MedicalRecordDTO mapEntityToDto(MedicalRecord record) {
         return new MedicalRecordDTO(
                 record.getFirstName(),
