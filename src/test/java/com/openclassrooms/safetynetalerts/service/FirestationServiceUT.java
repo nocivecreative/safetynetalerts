@@ -1,7 +1,6 @@
 package com.openclassrooms.safetynetalerts.service;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -118,11 +117,7 @@ class FirestationServiceUT {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> firestationService.updateMapping("123 Main St", firestation) /*
-                                                                                    * TODO Passer l'adrsse direct : pas
-                                                                                    * ouf ??
-                                                                                    */
-        );
+                () -> firestationService.updateMapping("123 Main St", firestation));
 
         assertEquals("Adresse non trouvée", exception.getMessage());
         verify(firestationRepository, never()).updateFirestation(any());
