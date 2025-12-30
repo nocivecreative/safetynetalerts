@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.openclassrooms.safetynetalerts.dto.childalert.ChildAlertResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.childalert.ChildInfoDTO;
 import com.openclassrooms.safetynetalerts.dto.childalert.HouseholdMemberDTO;
-import com.openclassrooms.safetynetalerts.dto.firestation.FirestationCoverageResponseDTO;
-import com.openclassrooms.safetynetalerts.dto.firestation.FirestationResidentDTO;
 import com.openclassrooms.safetynetalerts.dto.phonealert.PhoneAlertResponseDTO;
 import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.service.FirestationService;
@@ -46,66 +44,6 @@ public class AlertController {
         this.firestationService = firestationService;
         this.personService = personService;
         this.utils = utils;
-    }
-
-    /**
-     * Récupère la liste des personnes couvertes par une station de pompiers donnée.
-     * <p>
-     * Endpoint : GET /firestation?stationNumber={stationNumber}
-     * <p>
-     * Retourne la liste des résidents couverts par la station spécifiée, ainsi
-     * qu'un
-     * décompte du nombre d'adultes et d'enfants. Cette information est utilisée
-     * pour
-     * les opérations d'urgence nécessitant une évaluation rapide des populations à
-     * risque.
-     *
-     * @param stationNumber le numéro de la station de pompiers dont on veut
-     *                      récupérer les personnes couvertes
-     * @return ResponseEntity contenant un {@link FirestationCoverageResponseDTO}
-     *         avec la liste des résidents,
-     *         le nombre d'adultes et le nombre d'enfants (HTTP 200)
-     */
-    @GetMapping("/firestation")
-    public ResponseEntity<FirestationCoverageResponseDTO> getPersonsByStation(
-            @RequestParam("stationNumber") int stationNumber) {
-
-        logger.info("[CALL] GET /firestation?stationNumber={}", stationNumber);
-
-        // 1. Appeler le service pour récupérer les personnes
-        List<Person> persons = firestationService.getPersonsCoveredByStation(stationNumber);
-
-        // 2. Calculer les comptages adultes/enfants
-        int adultCount = 0;
-        int childCount = 0;
-
-        for (Person person : persons) {
-            if (utils.isChild(person)) {
-                childCount++;
-            } else {
-                adultCount++;
-            }
-        }
-
-        // 3. Mapper les entités vers DTOs
-        List<FirestationResidentDTO> residents = persons.stream()
-                .map(p -> new FirestationResidentDTO(
-                        p.getFirstName(),
-                        p.getLastName(),
-                        p.getAddress(),
-                        p.getPhone()))
-                .toList();
-
-        // 4. Construire le DTO de réponse
-        FirestationCoverageResponseDTO response = new FirestationCoverageResponseDTO(
-                residents,
-                adultCount,
-                childCount);
-
-        logger.info("[RESPONSE] GET /firestation -> {} résidents ({} adultes, {} enfants)",
-                residents.size(), adultCount, childCount);
-
-        return ResponseEntity.ok(response);
     }
 
     /**
