@@ -96,7 +96,7 @@ public class PersonService {
      * @throws IllegalArgumentException si une personne avec le même prénom et nom
      *                                  existe déjà
      */
-    public void addPerson(Person person) {
+    public Person addPerson(Person person) {
 
         if (personRepository.existsByFirstNameAndLastName(person.getFirstName(), person.getLastName())) {
             logger.error("[SERVICE] Person already exist: {} {}",
@@ -104,7 +104,8 @@ public class PersonService {
             throw new IllegalArgumentException("Person already exist");
         }
 
-        personRepository.addPerson(person);
+        Person created = personRepository.addPerson(person);
+        return created;
     }
 
     /**

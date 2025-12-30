@@ -201,8 +201,9 @@ public class PersonRepository {
      *
      * @param person la personne à ajouter
      */
-    public void addPerson(Person person) {
+    public Person addPerson(Person person) {
         data.getPersons().add(person);
+        return person;
     }
 
     /**

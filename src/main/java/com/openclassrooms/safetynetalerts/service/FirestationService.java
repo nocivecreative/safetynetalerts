@@ -142,14 +142,15 @@ public class FirestationService {
      * @throws IllegalArgumentException si l'adresse existe déjà ou si le numéro de
      *                                  caserne existe déjà
      */
-    public void addMapping(Firestation firestation) {
+    public Firestation addMapping(Firestation firestation) {
         if (firestationRepository.existsByAddress(firestation.getAddress())) {
             throw new IllegalArgumentException("L'adresse existe déjà");
         }
         if (firestationRepository.existsByStation(firestation.getStation())) {
             throw new IllegalArgumentException("Le numéro de la caserne existe déjà");
         }
-        firestationRepository.addFirestation(firestation);
+        Firestation created = firestationRepository.addFirestation(firestation);
+        return created;
     }
 
     /**

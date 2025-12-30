@@ -142,10 +142,10 @@ public class FirestationController {
         Firestation firestation = firestationMapper.toEntity(firestationDTO);
 
         // Appeler le service
-        firestationService.addMapping(firestation);
+        Firestation createdFirestation = firestationService.addMapping(firestation);
 
         // Mapper DTO pour la réponse
-        FirestationDTO response = firestationMapper.toDto(firestation);
+        FirestationDTO response = firestationMapper.toDto(createdFirestation);
 
         logger.info("[RESPONSE] POST /firestation -> Mapping created successfully");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

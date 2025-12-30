@@ -247,10 +247,10 @@ public class PersonController {
         Person person = personMapper.toEntity(personDTO);
 
         // Appeler le service
-        personService.addPerson(person);
+        Person created = personService.addPerson(person);
 
         // Mapper Entity → DTO pour la réponse
-        PersonDTO response = personMapper.toDto(person);
+        PersonDTO response = personMapper.toDto(created);
 
         logger.info("[RESPONSE] POST /person -> Person successfully added");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

@@ -89,15 +89,14 @@ public class MedicalRecordService {
      *                                  personne
      */
     public MedicalRecord createMedicalRecord(MedicalRecord medicalRecord) {
-        logger.info("Creating medical record: {} {}",
+        logger.info("[SERVICE] Creating medical record: {} {}",
                 medicalRecord.getFirstName(), medicalRecord.getLastName());
 
         // Vérifier si le dossier existe déjà
         if (medicalRecordRepository.existsByFirstNameAndLastName(
                 medicalRecord.getFirstName(),
                 medicalRecord.getLastName())) {
-            logger.error("Medical record already exists: {} {}",
-                    medicalRecord.getFirstName(), medicalRecord.getLastName());
+
             throw new IllegalArgumentException(
                     "Medical record for " + medicalRecord.getFirstName() + " "
                             + medicalRecord.getLastName() + " already exists");
@@ -106,7 +105,7 @@ public class MedicalRecordService {
         // Sauvegarder
         MedicalRecord savedRecord = medicalRecordRepository.save(medicalRecord);
 
-        logger.info("Medical record created successfully: {} {}",
+        logger.info("[SERVICE] Medical record created successfully: {} {}",
                 savedRecord.getFirstName(), savedRecord.getLastName());
 
         return savedRecord;

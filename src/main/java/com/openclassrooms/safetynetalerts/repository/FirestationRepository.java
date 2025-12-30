@@ -220,8 +220,9 @@ public class FirestationRepository {
      *
      * @param firestation le mapping caserne/adresse à ajouter
      */
-    public void addFirestation(Firestation firestation) {
+    public Firestation addFirestation(Firestation firestation) {
         data.getFirestations().add(firestation);
+        return firestation;
     }
 
     /**
