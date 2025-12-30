@@ -60,9 +60,6 @@ public class PersonRepository {
      * grâce à l'annotation {@link PostConstruct}. Elle charge toutes les données
      * en mémoire pour un accès rapide.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est appelée une seule fois au démarrage
-     * de l'application par le conteneur Spring, avant que le bean ne soit utilisé.
      */
     @PostConstruct
     public void init() {
@@ -75,10 +72,6 @@ public class PersonRepository {
      * <p>
      * Cette méthode retourne la liste complète sans aucun filtre.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode retourne la référence directe à la liste
-     * en mémoire. Elle n'est pas thread-safe si des modifications concurrentes sont
-     * effectuées.
      *
      * @return la liste de toutes les personnes, ou une liste vide si aucune
      *         personne n'est enregistrée
@@ -94,8 +87,6 @@ public class PersonRepository {
      * Cette méthode effectue une correspondance exacte sur l'adresse.
      * Elle est utilisée notamment pour récupérer tous les résidents d'un foyer.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
      * La création d'une nouvelle liste via {@code toList()} garantit l'isolation
      * des données retournées.
      *
@@ -118,9 +109,6 @@ public class PersonRepository {
      * nom,
      * qui constitue l'identifiant unique d'une personne dans le système.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
-     *
      * @param firstName le prénom à rechercher (sensible à la casse, correspondance
      *                  exacte)
      * @param lastName  le nom de famille à rechercher (sensible à la casse,
@@ -141,8 +129,6 @@ public class PersonRepository {
      * <p>
      * Cette méthode est utile pour retrouver tous les membres d'une même famille.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
      * La création d'une nouvelle liste via {@code toList()} garantit l'isolation
      * des données retournées.
      *
@@ -173,8 +159,6 @@ public class PersonRepository {
      * Elle est utilisée pour envoyer des alertes par email à tous les résidents
      * d'une ville.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
      * La création d'un nouveau Set via {@code collect()} garantit l'isolation
      * des données retournées.
      *
@@ -196,9 +180,6 @@ public class PersonRepository {
      * Cette méthode vérifie l'existence d'une personne par la combinaison unique
      * prénom + nom de famille.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
-     *
      * @param firstName le prénom de la personne à rechercher
      * @param lastName  le nom de famille de la personne à rechercher
      * @return {@code true} si la personne existe, {@code false} sinon
@@ -218,13 +199,6 @@ public class PersonRepository {
      * responsabilité
      * du service appelant de vérifier que la personne n'existe pas déjà.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode n'est PAS thread-safe. Elle modifie
-     * directement la liste en mémoire sans synchronisation. En environnement
-     * concurrent,
-     * des mécanismes de synchronisation doivent être mis en place au niveau
-     * service.
-     *
      * @param person la personne à ajouter
      */
     public void addPerson(Person person) {
@@ -239,29 +213,28 @@ public class PersonRepository {
      * address, city, zip, phone et email. L'identité de la personne (prénom + nom)
      * ne peut pas être modifiée conformément au cahier des charges.
      *
-     * <p>
-     * Si aucune personne ne correspond à la combinaison prénom + nom,
-     * aucune modification n'est effectuée.
-     *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode n'est PAS thread-safe. Elle modifie
-     * directement l'objet en mémoire sans synchronisation. En environnement
-     * concurrent,
-     * des mécanismes de synchronisation doivent être mis en place au niveau
-     * service.
-     *
-     * @param person les nouvelles données de la personne (prénom et nom servent
-     *               d'identifiant)
+     * @param existing la personne existante
+     * @param updated  les nouvelles données de la personne (prénom et nom servent
+     *                 d'identifiant)
      */
-    public void updatePerson(Person person) {
-        findByFirstNameAndLastName(person.getFirstName(), person.getLastName())
-                .ifPresent(existingPerson -> {
-                    existingPerson.setAddress(person.getAddress());
-                    existingPerson.setCity(person.getCity());
-                    existingPerson.setZip(person.getZip());
-                    existingPerson.setPhone(person.getPhone());
-                    existingPerson.setEmail(person.getEmail());
-                });
+    public void updatePerson(Person existing, Person updated) {
+        // Le prénom et nom ne changent pas (identifiant unique)
+        if (updated.getAddress() != null) {
+            existing.setAddress(updated.getAddress());
+        }
+        if (updated.getCity() != null) {
+            existing.setCity(updated.getCity());
+        }
+        if (updated.getZip() != null) {
+            existing.setZip(updated.getZip());
+        }
+        if (updated.getPhone() != null) {
+            existing.setPhone(updated.getPhone());
+        }
+        if (updated.getEmail() != null) {
+            existing.setEmail(updated.getEmail());
+        }
+
     }
 
     /**
@@ -273,12 +246,6 @@ public class PersonRepository {
      * Si aucune personne ne correspond, aucune erreur n'est levée (suppression
      * idempotente).
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode n'est PAS thread-safe. Elle modifie
-     * directement la liste en mémoire sans synchronisation. En environnement
-     * concurrent,
-     * des mécanismes de synchronisation doivent être mis en place au niveau
-     * service.
      *
      * @param firstName le prénom de la personne à supprimer
      * @param lastName  le nom de famille de la personne à supprimer

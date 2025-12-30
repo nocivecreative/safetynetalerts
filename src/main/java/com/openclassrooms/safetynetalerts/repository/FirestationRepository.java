@@ -61,9 +61,6 @@ public class FirestationRepository {
      * grâce à l'annotation {@link PostConstruct}. Elle charge toutes les données
      * en mémoire pour un accès rapide.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est appelée une seule fois au démarrage
-     * de l'application par le conteneur Spring, avant que le bean ne soit utilisé.
      */
     @PostConstruct // Post injection de dépendances
     public void init() {
@@ -73,8 +70,6 @@ public class FirestationRepository {
     /**
      * Récupère la liste complète de tous les mappings caserne/adresse.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
      * La création d'une nouvelle liste via {@code toList()} garantit l'isolation
      * des données retournées.
      *
@@ -93,8 +88,6 @@ public class FirestationRepository {
      * Une caserne peut couvrir plusieurs adresses, cette méthode retourne
      * tous les mappings pour une caserne donnée.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
      * La création d'une nouvelle liste via {@code toList()} garantit l'isolation
      * des données retournées.
      *
@@ -115,8 +108,6 @@ public class FirestationRepository {
      * Cette méthode est utilisée pour déterminer la zone de couverture géographique
      * d'une caserne lors d'une intervention d'urgence.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
      * La création d'une nouvelle liste via {@code toList()} garantit l'isolation
      * des données retournées.
      *
@@ -134,9 +125,6 @@ public class FirestationRepository {
     /**
      * Vérifie si un numéro de caserne existe dans le système.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
-     *
      * @param stationNumber le numéro de caserne à vérifier
      * @return {@code true} si au moins un mapping existe pour ce numéro,
      *         {@code false} sinon
@@ -152,9 +140,6 @@ public class FirestationRepository {
      * <p>
      * Chaque adresse ne peut être couverte que par une seule caserne.
      * Cette méthode permet de vérifier si une adresse a déjà un mapping.
-     *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
      *
      * @param address l'adresse à vérifier
      * @return {@code true} si l'adresse est déjà couverte, {@code false} sinon
@@ -173,9 +158,6 @@ public class FirestationRepository {
      * NullPointerException
      * lors de la manipulation de types primitifs (int ne peut pas être null).
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
-     *
      * @param address l'adresse à rechercher
      * @return un {@link Optional} contenant le numéro de caserne si trouvé, sinon
      *         {@link Optional#empty()}
@@ -193,9 +175,6 @@ public class FirestationRepository {
      * <p>
      * Cette méthode retourne l'objet {@link Firestation} complet, contrairement à
      * {@link #findStationNumberByAddress(String)} qui ne retourne que le numéro.
-     *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
      *
      * @param address l'adresse à rechercher
      * @return un {@link Optional} contenant le mapping complet si trouvé, sinon
@@ -217,7 +196,6 @@ public class FirestationRepository {
      * couverte que par une seule caserne).
      *
      * <p>
-     * <b>Thread-safety :</b> Cette méthode est thread-safe en lecture seule.
      * La création d'un nouveau Set via {@code collect()} garantit l'isolation
      * des données retournées.
      *
@@ -239,12 +217,6 @@ public class FirestationRepository {
      * Aucune validation n'est effectuée à ce niveau - c'est la responsabilité
      * du service appelant de vérifier l'unicité de l'adresse.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode n'est PAS thread-safe. Elle modifie
-     * directement la liste en mémoire sans synchronisation. En environnement
-     * concurrent,
-     * des mécanismes de synchronisation doivent être mis en place au niveau
-     * service.
      *
      * @param firestation le mapping caserne/adresse à ajouter
      */
@@ -253,29 +225,23 @@ public class FirestationRepository {
     }
 
     /**
-     * Met à jour un mapping caserne/adresse existant.
+     * Met à jour un numéro de caserne à partir d'une adresse existante.
      *
      * <p>
-     * Cette méthode recherche le mapping par son adresse et met à jour le numéro
-     * de caserne associé. Si aucun mapping n'existe pour cette adresse, aucune
+     * Cette méthode met à jour le numéro de caserne associé. Si aucun mapping
+     * n'existe pour cette adresse, aucune
      * modification n'est effectuée.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode n'est PAS thread-safe. Elle modifie
-     * directement l'objet en mémoire sans synchronisation. En environnement
-     * concurrent,
-     * des mécanismes de synchronisation doivent être mis en place au niveau
-     * service.
-     *
-     * @param firestation le mapping contenant l'adresse à mettre à jour et le
-     *                    nouveau numéro de caserne
+     * @param existing le mapping de la caserne existante
+     * @param updated  le mapping contenant l'adresse à mettre à jour et le
+     *                 nouveau numéro de caserne
      */
-    public void updateFirestation(Firestation firestation) {
+    public void updateFirestation(Firestation existing, Firestation updated) {
 
-        findStationByAddress(firestation.getAddress())
-                .ifPresent(existingFs -> {
-                    existingFs.setStation(firestation.getStation());
-                });
+        // L'adressee ne change pas (identifiant unique)
+        if (updated.getStation() > 0) {
+            existing.setStation(updated.getStation());
+        }
     }
 
     /**
@@ -284,20 +250,11 @@ public class FirestationRepository {
      * <p>
      * Cette méthode supprime le mapping pour l'adresse spécifiée.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode n'est PAS thread-safe. Elle modifie
-     * directement la liste en mémoire sans synchronisation. En environnement
-     * concurrent,
-     * des mécanismes de synchronisation doivent être mis en place au niveau
-     * service.
-     *
      * @param address l'adresse dont on veut supprimer le mapping
      * @throws IllegalArgumentException si l'adresse spécifiée n'est pas trouvée
      */
-    public void deleteFirestationByAddress(String address) {
-        if (!data.getFirestations().removeIf(p -> p.getAddress().equals(address))) {
-            throw new IllegalArgumentException("Aucune caserne trouvée à cette adresse");
-        }
+    public boolean deleteFirestationByAddress(String address) {
+        return data.getFirestations().removeIf(p -> p.getAddress().equals(address));
     }
 
     /**
@@ -308,20 +265,11 @@ public class FirestationRepository {
      * Une caserne peut couvrir plusieurs adresses, donc cette opération peut
      * supprimer plusieurs mappings en une seule fois.
      *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode n'est PAS thread-safe. Elle modifie
-     * directement la liste en mémoire sans synchronisation. En environnement
-     * concurrent,
-     * des mécanismes de synchronisation doivent être mis en place au niveau
-     * service.
-     *
      * @param station le numéro de caserne dont on veut supprimer tous les mappings
      * @throws IllegalArgumentException si le numéro de caserne spécifié n'existe
      *                                  pas
      */
-    public void deleteFirestationByStation(int station) {
-        if (!data.getFirestations().removeIf(p -> p.getStation() == (station))) {
-            throw new IllegalArgumentException("Le numéro de caserne indiqué n'existe pas");
-        }
+    public boolean deleteFirestationByStation(int station) {
+        return data.getFirestations().removeIf(p -> p.getStation() == (station));
     }
 }

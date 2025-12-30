@@ -163,57 +163,13 @@ public class MedicalRecordRepository {
         if (existing.isPresent()) {
             // Si il existe, on le met à jour
             MedicalRecord existingRecord = existing.get();
-            updateMedicalRecordFields(existingRecord, medicalRecord);
+            updateFields(existingRecord, medicalRecord);
             return existingRecord;
         } else {
             // Sinon on l'ajoute
             data.getMedicalrecords().add(medicalRecord);
             return medicalRecord;
         }
-    }
-
-    /**
-     * Met à jour un dossier médical existant.
-     *
-     * <p>
-     * Cette méthode recherche le dossier par prénom et nom, puis met à jour
-     * ses informations médicales. La mise à jour est partielle : seuls les champs
-     * non-null de {@code updatedRecord} sont appliqués.
-     *
-     * <p>
-     * Les champs pouvant être mis à jour :
-     * <ul>
-     * <li>Date de naissance</li>
-     * <li>Liste des médicaments</li>
-     * <li>Liste des allergies</li>
-     * </ul>
-     *
-     * <p>
-     * <b>Thread-safety :</b> Cette méthode n'est PAS thread-safe. Elle modifie
-     * directement l'objet en mémoire sans synchronisation. En environnement
-     * concurrent,
-     * des mécanismes de synchronisation doivent être mis en place au niveau
-     * service.
-     *
-     * @param firstName     le prénom de la personne dont on veut mettre à jour le
-     *                      dossier
-     * @param lastName      le nom de famille de la personne dont on veut mettre à
-     *                      jour le dossier
-     * @param updatedRecord les nouvelles informations médicales (seuls les champs
-     *                      non-null sont mis à jour)
-     * @return un {@link Optional} contenant le dossier mis à jour si trouvé, sinon
-     *         {@link Optional#empty()}
-     */
-    public Optional<MedicalRecord> update(String firstName, String lastName, MedicalRecord updatedRecord) {
-        Optional<MedicalRecord> existing = findByFirstNameAndLastName(firstName, lastName);
-
-        if (existing.isPresent()) {
-            MedicalRecord record = existing.get();
-            updateMedicalRecordFields(record, updatedRecord);
-            return Optional.of(record);
-        }
-
-        return Optional.empty();
     }
 
     /**
@@ -247,7 +203,7 @@ public class MedicalRecordRepository {
      * dossier mis à jour.
      *
      * <p>
-     * Cette méthode privée implémente la logique de mise à jour partielle :
+     * Cette méthode implémente la logique de mise à jour partielle :
      * seuls les champs non-null du dossier {@code updated} sont copiés vers le
      * dossier {@code existing}.
      *
@@ -259,7 +215,7 @@ public class MedicalRecordRepository {
      * @param updated  le dossier contenant les nouvelles valeurs (seuls les champs
      *                 non-null sont pris en compte)
      */
-    private void updateMedicalRecordFields(MedicalRecord existing, MedicalRecord updated) {
+    public void updateFields(MedicalRecord existing, MedicalRecord updated) {
         // Le prénom et nom ne changent pas (identifiant unique)
         if (updated.getBirthdate() != null) {
             existing.setBirthdate(updated.getBirthdate());

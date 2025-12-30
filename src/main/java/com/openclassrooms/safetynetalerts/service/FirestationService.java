@@ -56,7 +56,7 @@ public class FirestationService {
      *         si aucune personne n'est trouvée
      */
     public List<Person> getPersonsCoveredByStation(int stationNumber) {
-        logger.debug("[SERVICE] Recherche des personnes couvertes par la station={}", stationNumber);
+        logger.debug("[SERVICE] Looking for persons covered by station={}", stationNumber);
 
         List<String> addresses = firestationRepository.findAddressesByStation(stationNumber);
 
@@ -74,7 +74,7 @@ public class FirestationService {
      * @return le numéro de station, ou -1 si non trouvé
      */
     public Integer getStationNumberByAddress(String address) {
-        logger.debug("[SERVICE] Recherche du numéro de station pour l'adresse={}", address);
+        logger.debug("[SERVICE] Looking for station numbere for address={}", address);
         return firestationRepository.findStationNumberByAddress(address).orElse(-1);
     }
 
@@ -85,7 +85,7 @@ public class FirestationService {
      * @return l'ensemble des adresses couvertes
      */
     public Set<String> getAddressesByStations(List<Integer> stations) {
-        logger.debug("[SERVICE] Recherche des adresses pour les stations={}", stations);
+        logger.debug("[SERVICE] Looking for adresses covered by stations={}", stations);
         return firestationRepository.findAddressesByStations(stations);
     }
 
@@ -110,7 +110,7 @@ public class FirestationService {
      * @return un ensemble de numéros de téléphone uniques, triés alphabétiquement
      */
     public Set<String> getPhoneNumbersByStation(int stationNumber) {
-        logger.debug("[SERVICE] Recherche des téléphones pour la station={}", stationNumber);
+        logger.debug("[SERVICE] Looking for phone numbers for station={}", stationNumber);
 
         List<String> addresses = firestationRepository.findAddressesByStation(stationNumber);
 
@@ -165,16 +165,23 @@ public class FirestationService {
      * <p>
      * L'adresse sert d'identifiant pour la mise à jour. Si l'adresse n'existe pas
      * dans le système, une exception est levée.
-     *
-     * @param firestation le mapping caserne/adresse mis à jour (l'adresse sert
-     *                    d'identifiant)
+     * 
+     * @param address     l'adresse à mettre à jour
+     * @param firestation le mapping caserne/adresse mis à jour
+     * 
      * @throws IllegalArgumentException si l'adresse n'existe pas dans le système
      */
-    public void updateMapping(String address, Firestation firestation) {
-        if (!firestationRepository.existsByAddress(address)) {
-            throw new IllegalArgumentException("Adresse non trouvée");
-        }
-        firestationRepository.updateFirestation(firestation);
+    public Firestation updateMapping(String address, Firestation updated) {
+        logger.info("[SERVICE] Updating firestation's address: {}, for station number: {}", address,
+                updated.getStation());
+
+        // Mise à jour
+        Firestation existing = firestationRepository
+                .findStationByAddress(address)
+                .orElseThrow(() -> new IllegalArgumentException("Addresse not found"));
+
+        firestationRepository.updateFirestation(existing, updated);
+        return existing;
     }
 
     /**
@@ -218,13 +225,23 @@ public class FirestationService {
 
         // Cas 3 : Suppression par adresse
         if (address != null && !address.isBlank()) {
-            firestationRepository.deleteFirestationByAddress(address);
+            if (!firestationRepository.existsByAddress(address)) {
+                throw new IllegalArgumentException("L'adresse spécifiée est introuvable");
+            }
+            if (!firestationRepository.deleteFirestationByAddress(address)) {
+                throw new IllegalArgumentException("Erreur durant la suppression");
+            }
             return;
         }
 
         // Cas 4 : Suppression par station
         if (station != null) {
-            firestationRepository.deleteFirestationByStation(station);
+            if (!firestationRepository.existsByStation(station)) {
+                throw new IllegalArgumentException("Le numéro de caserne spécifié est introuvable");
+            }
+            if (!firestationRepository.deleteFirestationByStation(station)) {
+                throw new IllegalArgumentException("Erreur durant la suppression");
+            }
             return;
         }
     }

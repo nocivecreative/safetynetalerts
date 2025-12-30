@@ -44,7 +44,7 @@ public class PersonService {
      *         aucune personne n'est trouvée
      */
     public List<Person> getPersonsByAddress(String address) {
-        logger.debug("[SERVICE] Recherche des personnes vivant à l'adresse={}", address);
+        logger.debug("[SERVICE] Looking for persons living at address={}", address);
         return personRepository.findByAddress(address);
     }
 
@@ -128,13 +128,15 @@ public class PersonService {
      *               servent d'identifiant)
      * @throws IllegalArgumentException si la personne n'existe pas dans le système
      */
-    public void updatePerson(Person person) {
-        if (!personRepository.existsByFirstNameAndLastName(person.getFirstName(), person.getLastName())) {
-            logger.error("[SERVICE] Person not found: {} {}",
-                    person.getFirstName(), person.getLastName());
-            throw new IllegalArgumentException("Person not found");
-        }
-        personRepository.updatePerson(person);
+    public Person updatePerson(String firstName, String lastName, Person person) {
+        logger.info("[SERVICE] Updating person informations for: {} {}", firstName, lastName);
+        Person existing = personRepository
+                .findByFirstNameAndLastName(firstName, lastName)
+                .orElseThrow(() -> new IllegalArgumentException("Person not found: " + firstName + " " + lastName));
+
+        personRepository.updatePerson(existing, person);
+
+        return existing;
     }
 
     /**
@@ -158,11 +160,12 @@ public class PersonService {
      * @throws IllegalArgumentException si la personne n'existe pas dans le système
      */
     public void deletePerson(String firstName, String lastName) {
+        logger.info("[SERVICE] Deleting person: {} {}", firstName, lastName);
+
         if (!personRepository.existsByFirstNameAndLastName(firstName, lastName)) {
-            logger.error("[SERVICE] Person not found: {} {}",
-                    firstName, lastName);
-            throw new IllegalArgumentException("Person not found");
+            throw new IllegalArgumentException("Person not found: " + firstName + " " + lastName);
         }
+
         personRepository.deletePerson(firstName, lastName);
     }
 

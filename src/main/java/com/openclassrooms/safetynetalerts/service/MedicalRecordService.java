@@ -125,32 +125,28 @@ public class MedicalRecordService {
      * Si aucun dossier médical n'existe pour cette personne, une exception est
      * levée.
      *
-     * @param firstName     le prénom de la personne dont on veut mettre à jour le
-     *                      dossier
-     * @param lastName      le nom de famille de la personne dont on veut mettre à
-     *                      jour le dossier
-     * @param medicalRecord les nouvelles informations médicales (seuls les champs
-     *                      non-null sont mis à jour)
+     * @param firstName   le prénom de la personne dont on veut mettre à jour le
+     *                    dossier
+     * @param lastName    le nom de famille de la personne dont on veut mettre à
+     *                    jour le dossier
+     * @param updatedData les nouvelles informations médicales (seuls les champs
+     *                    non-null sont mis à jour)
      * @return le dossier médical mis à jour
      * @throws IllegalArgumentException si aucun dossier médical n'existe pour cette
      *                                  personne
      */
     public MedicalRecord updateMedicalRecord(String firstName, String lastName,
-            MedicalRecord medicalRecord) {
-        logger.info("Updating medical record: {} {}", firstName, lastName);
+            MedicalRecord updated) {
 
-        // Mettre à jour
-        Optional<MedicalRecord> updatedRecord = medicalRecordRepository.update(
-                firstName, lastName, medicalRecord);
+        logger.info("[SERVICE] Updating medical record: {} {}", firstName, lastName);
 
-        if (updatedRecord.isEmpty()) {
-            logger.warn("Medical record not found: {} {}", firstName, lastName);
-            throw new IllegalArgumentException(
-                    "Medical record for " + firstName + " " + lastName + " not found");
-        }
+        MedicalRecord existing = medicalRecordRepository
+                .findByFirstNameAndLastName(firstName, lastName)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Medical record for " + firstName + " " + lastName + " not found"));
 
-        logger.info("Medical record updated successfully: {} {}", firstName, lastName);
-        return updatedRecord.get();
+        medicalRecordRepository.updateFields(existing, updated);
+        return existing;
     }
 
     /**
@@ -179,16 +175,14 @@ public class MedicalRecordService {
      *                                  personne
      */
     public void deleteMedicalRecord(String firstName, String lastName) {
-        logger.info("Deleting medical record: {} {}", firstName, lastName);
+        logger.info("[SERVICE] Deleting medical record: {} {}", firstName, lastName);
 
-        boolean deleted = medicalRecordRepository.delete(firstName, lastName);
-
-        if (!deleted) {
-            logger.warn("Medical record not found: {} {}", firstName, lastName);
+        if (!medicalRecordRepository.existsByFirstNameAndLastName(firstName, lastName)) {
             throw new IllegalArgumentException(
                     "Medical record for " + firstName + " " + lastName + " not found");
         }
 
-        logger.info("Medical record deleted successfully: {} {}", firstName, lastName);
+        if (!medicalRecordRepository.delete(firstName, lastName))
+            throw new IllegalArgumentException("Erreur durant la suppression");
     }
 }
