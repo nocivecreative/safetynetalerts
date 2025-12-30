@@ -7,13 +7,12 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import com.openclassrooms.safetynetalerts.dto.PersonDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -26,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.openclassrooms.safetynetalerts.dto.PersonDTO;
 import com.openclassrooms.safetynetalerts.mapper.PersonMapper;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.model.Person;
@@ -177,8 +177,21 @@ class PersonControllerIT {
                 }
                 """;
 
-        doNothing().when(personService).addPerson(any(Person.class));
+        PersonDTO personDTO = new PersonDTO(
+                "John",
+                "Doe",
+                "123 Main St",
+                "Paris",
+                "75001",
+                "111-111-1111",
+                "john.doe@email.com");
 
+        when(personMapper.toEntity(any(PersonDTO.class)))
+                .thenReturn(person1);
+        when(personService.addPerson(any(Person.class)))
+                .thenReturn(person1);
+        when(personMapper.toDto(any(Person.class)))
+                .thenReturn(personDTO);
         // Act & Assert
         mockMvc.perform(post("/person")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -229,7 +242,14 @@ class PersonControllerIT {
                 }
                 """;
 
-        doNothing().when(personService).updatePerson(any(Person.class));
+        Person updatedPerson = new Person();
+        updatedPerson.setAddress("456 New St");
+        updatedPerson.setCity("Lyon");
+        updatedPerson.setZip("69001");
+        updatedPerson.setPhone("333-333-3333");
+        updatedPerson.setEmail("john.new@email.com");
+
+        when(personService.updatePerson(eq("John"), eq("Doe"), any(Person.class))).thenReturn(updatedPerson);
 
         // Act & Assert
         mockMvc.perform(put("/person")
@@ -240,7 +260,7 @@ class PersonControllerIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.address").value("456 New St"));
 
-        verify(personService, times(1)).updatePerson(any(Person.class));
+        verify(personService, times(1)).updatePerson(eq("John"), eq("Doe"), any(Person.class));
     }
 
     // ==================== Tests DELETE /person ====================

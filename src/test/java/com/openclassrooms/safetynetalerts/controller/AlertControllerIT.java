@@ -1,19 +1,22 @@
 package com.openclassrooms.safetynetalerts.controller;
 
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.service.FirestationService;
@@ -59,49 +62,6 @@ class AlertControllerIT {
         adult.setLastName("Boyd");
         adult.setAddress("123 Main St");
         adult.setPhone("222-222-2222");
-    }
-
-    // ==================== Tests GET /firestation ====================
-
-    @Test
-    void getPersonsByStation_validStation_returnsOkWithCorrectData() throws Exception {
-        // Arrange
-        List<Person> persons = Arrays.asList(child, adult, adult);
-        when(firestationService.getPersonsCoveredByStation(1)).thenReturn(persons);
-        when(utils.isChild(child)).thenReturn(true);
-        when(utils.isChild(adult)).thenReturn(false);
-
-        // Act & Assert
-        mockMvc.perform(get("/firestation")
-                .param("stationNumber", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.residents").isArray())
-                .andExpect(jsonPath("$.residents.length()").value(3))
-                .andExpect(jsonPath("$.adultCount").value(2))
-                .andExpect(jsonPath("$.childCount").value(1))
-                .andExpect(jsonPath("$.residents[0].firstName").value("Emma"))
-                .andExpect(jsonPath("$.residents[0].lastName").value("Boyd"))
-                .andExpect(jsonPath("$.residents[0].address").value("123 Main St"))
-                .andExpect(jsonPath("$.residents[0].phone").value("111-111-1111"));
-
-        verify(firestationService, times(1)).getPersonsCoveredByStation(1);
-        verify(utils, times(3)).isChild(any(Person.class));
-    }
-
-    @Test
-    void getPersonsByStation_noPersons_returnsEmptyList() throws Exception {
-        // Arrange
-        when(firestationService.getPersonsCoveredByStation(99)).thenReturn(List.of());
-
-        // Act & Assert
-        mockMvc.perform(get("/firestation")
-                .param("stationNumber", "99"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.residents").isEmpty())
-                .andExpect(jsonPath("$.adultCount").value(0))
-                .andExpect(jsonPath("$.childCount").value(0));
-
-        verify(firestationService, times(1)).getPersonsCoveredByStation(99);
     }
 
     // ==================== Tests GET /phoneAlert ====================

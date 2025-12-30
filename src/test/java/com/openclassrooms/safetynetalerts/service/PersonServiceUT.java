@@ -2,6 +2,7 @@ package com.openclassrooms.safetynetalerts.service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -120,15 +121,15 @@ class PersonServiceUT {
     @Test
     void updatePerson_personNotFound_throwsIllegalArgumentException() {
         // Arrange
-        when(personRepository.existsByFirstNameAndLastName("John", "Doe")).thenReturn(false);
+        when(personRepository.findByFirstNameAndLastName("John", "Doe")).thenReturn(Optional.empty());
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> personService.updatePerson(person));
+                () -> personService.updatePerson("John", "Doe", person));
 
-        assertEquals("Person not found", exception.getMessage());
-        verify(personRepository, never()).updatePerson(any(Person.class));
+        assertEquals("Person not found: John Doe", exception.getMessage());
+        verify(personRepository, never()).updatePerson(any(Person.class), any(Person.class));
     }
 
     // ==================== Tests deletePerson ====================
@@ -143,7 +144,7 @@ class PersonServiceUT {
                 IllegalArgumentException.class,
                 () -> personService.deletePerson("Unknown", "Person"));
 
-        assertEquals("Person not found", exception.getMessage());
+        assertEquals("Person not found: Unknown Person", exception.getMessage());
         verify(personRepository, never()).deletePerson(anyString(), anyString());
     }
 }

@@ -3,6 +3,7 @@ package com.openclassrooms.safetynetalerts.service;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,7 +83,7 @@ class MedicalRecordServiceUT {
     @Test
     void updateMedicalRecord_recordNotFound_throwsIllegalArgumentException() {
         // Arrange
-        when(medicalRecordRepository.update("Unknown", "Person", medicalRecord))
+        when(medicalRecordRepository.findByFirstNameAndLastName("Unknown", "Person"))
                 .thenReturn(Optional.empty());
 
         // Act & Assert
@@ -90,7 +91,7 @@ class MedicalRecordServiceUT {
                 IllegalArgumentException.class,
                 () -> medicalRecordService.updateMedicalRecord("Unknown", "Person", medicalRecord));
 
-        assertTrue(exception.getMessage().contains("not found"));
+        assertEquals("Medical record for Unknown Person not found", exception.getMessage());
     }
 
     // ==================== Tests deleteMedicalRecord ====================
@@ -98,13 +99,13 @@ class MedicalRecordServiceUT {
     @Test
     void deleteMedicalRecord_recordNotFound_throwsIllegalArgumentException() {
         // Arrange
-        when(medicalRecordRepository.delete("Unknown", "Person")).thenReturn(false);
+        when(medicalRecordRepository.existsByFirstNameAndLastName("Unknown", "Person")).thenReturn(false);
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
                 () -> medicalRecordService.deleteMedicalRecord("Unknown", "Person"));
 
-        assertTrue(exception.getMessage().contains("not found"));
+        assertEquals("Medical record for Unknown Person not found", exception.getMessage());
     }
 }

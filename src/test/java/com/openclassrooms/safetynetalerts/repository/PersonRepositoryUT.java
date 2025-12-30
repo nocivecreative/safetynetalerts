@@ -192,17 +192,17 @@ class PersonRepositoryUT {
         int initialSize = persons.size();
 
         // Act
-        personRepository.updatePerson(updatedPerson);
+        personRepository.updatePerson(person1, updatedPerson);
 
         // Assert
         assertEquals(initialSize, persons.size());
-        assertTrue(persons.contains(updatedPerson));
 
-        // Vérifier que l'ancienne personne a été supprimée
-        Optional<Person> result = personRepository.findByFirstNameAndLastName("John", "Doe");
-        assertTrue(result.isPresent());
-        assertEquals("999 Updated St", result.get().getAddress());
-        assertEquals("New City", result.get().getCity());
+        // Vérifier que person1 a été mise à jour
+        assertEquals("999 Updated St", person1.getAddress());
+        assertEquals("New City", person1.getCity());
+        assertEquals("99999", person1.getZip());
+        assertEquals("999-999-9999", person1.getPhone());
+        assertEquals("john.updated@email.com", person1.getEmail());
     }
 
     // ==================== Tests deletePerson ====================

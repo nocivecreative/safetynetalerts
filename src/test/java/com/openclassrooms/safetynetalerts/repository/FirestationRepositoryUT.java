@@ -195,13 +195,14 @@ class FirestationRepositoryUT {
         updatedFirestation.setAddress("123 Main St");
         updatedFirestation.setStation(99);
 
-        // int initialSize = firestations.size();
+        int initialSize = firestations.size();
 
         // Act
-        firestationRepository.updateFirestation(updatedFirestation);
+        firestationRepository.updateFirestation(firestation1, updatedFirestation);
 
         // Assert
-        assertTrue(firestations.contains(updatedFirestation));
+        assertEquals(initialSize, firestations.size());
+        assertEquals(99, firestation1.getStation());
     }
 
     // ==================== Tests deleteFirestationByAddress ====================

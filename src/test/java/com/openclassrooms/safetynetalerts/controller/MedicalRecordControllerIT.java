@@ -14,6 +14,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.openclassrooms.safetynetalerts.dto.medicalrecord.MedicalRecordDTO;
+import com.openclassrooms.safetynetalerts.mapper.MedicalRecordMapper;
 import com.openclassrooms.safetynetalerts.model.MedicalRecord;
 import com.openclassrooms.safetynetalerts.service.MedicalRecordService;
 
@@ -22,7 +24,7 @@ import com.openclassrooms.safetynetalerts.service.MedicalRecordService;
  *
  * Tests critiques pour les endpoints CRUD
  */
-@WebMvcTest(MedicalRecordController.class)
+@WebMvcTest(controllers = MedicalRecordController.class)
 class MedicalRecordControllerIT {
 
     @Autowired
@@ -31,7 +33,11 @@ class MedicalRecordControllerIT {
     @MockitoBean
     private MedicalRecordService medicalRecordService;
 
+    @MockitoBean
+    private MedicalRecordMapper medicalRecordMapper;
+
     private MedicalRecord medicalRecord;
+    private MedicalRecordDTO medicalRecordDTO;
 
     @BeforeEach
     void setUp() {
@@ -41,6 +47,13 @@ class MedicalRecordControllerIT {
         medicalRecord.setBirthdate("01/01/1990");
         medicalRecord.setMedications(Arrays.asList("aspirin:100mg"));
         medicalRecord.setAllergies(Arrays.asList("peanuts"));
+
+        medicalRecordDTO = new MedicalRecordDTO(
+                "John",
+                "Doe",
+                "01/01/1990",
+                Arrays.asList("aspirin:100mg"),
+                Arrays.asList("peanuts"));
     }
 
     // ==================== Tests POST /medicalRecord ====================
@@ -58,8 +71,12 @@ class MedicalRecordControllerIT {
                 }
                 """;
 
+        when(medicalRecordMapper.toEntity(any(MedicalRecordDTO.class)))
+                .thenReturn(medicalRecord);
         when(medicalRecordService.createMedicalRecord(any(MedicalRecord.class)))
                 .thenReturn(medicalRecord);
+        when(medicalRecordMapper.toDto(any(MedicalRecord.class)))
+                .thenReturn(medicalRecordDTO);
 
         // Act & Assert
         mockMvc.perform(post("/medicalRecord")
@@ -85,6 +102,8 @@ class MedicalRecordControllerIT {
                 }
                 """;
 
+        when(medicalRecordMapper.toEntity(any(MedicalRecordDTO.class)))
+                .thenReturn(medicalRecord);
         when(medicalRecordService.createMedicalRecord(any(MedicalRecord.class)))
                 .thenThrow(new IllegalArgumentException("Medical record already exists"));
 
@@ -102,14 +121,20 @@ class MedicalRecordControllerIT {
         // Arrange
         String medicalRecordJson = """
                 {
+                    "firstName": "John",
+                    "lastName": "Doe",
                     "birthdate": "02/02/1990",
                     "medications": ["newMed:500mg"],
                     "allergies": ["newAllergy"]
                 }
                 """;
 
+        when(medicalRecordMapper.toEntity(any(MedicalRecordDTO.class)))
+                .thenReturn(medicalRecord);
         when(medicalRecordService.updateMedicalRecord(eq("John"), eq("Doe"), any(MedicalRecord.class)))
                 .thenReturn(medicalRecord);
+        when(medicalRecordMapper.toDto(any(MedicalRecord.class)))
+                .thenReturn(medicalRecordDTO);
 
         // Act & Assert
         mockMvc.perform(put("/medicalRecord")
@@ -128,12 +153,16 @@ class MedicalRecordControllerIT {
         // Arrange
         String medicalRecordJson = """
                 {
+                    "firstName": "Unknown",
+                    "lastName": "Person",
                     "birthdate": "01/01/2000",
                     "medications": [],
                     "allergies": []
                 }
                 """;
 
+        when(medicalRecordMapper.toEntity(any(MedicalRecordDTO.class)))
+                .thenReturn(medicalRecord);
         when(medicalRecordService.updateMedicalRecord(eq("Unknown"), eq("Person"), any(MedicalRecord.class)))
                 .thenThrow(new IllegalArgumentException("Medical record not found"));
 

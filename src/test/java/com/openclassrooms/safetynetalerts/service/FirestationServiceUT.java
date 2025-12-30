@@ -112,15 +112,15 @@ class FirestationServiceUT {
     @Test
     void updateMapping_addressNotFound_throwsIllegalArgumentException() {
         // Arrange
-        when(firestationRepository.existsByAddress("123 Main St")).thenReturn(false);
+        when(firestationRepository.findStationByAddress("123 Main St")).thenReturn(java.util.Optional.empty());
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
                 () -> firestationService.updateMapping("123 Main St", firestation));
 
-        assertEquals("Adresse non trouvée", exception.getMessage());
-        verify(firestationRepository, never()).updateFirestation(any());
+        assertEquals("Addresse not found", exception.getMessage());
+        verify(firestationRepository, never()).updateFirestation(any(Firestation.class), any(Firestation.class));
     }
 
     // ==================== Tests deleteMapping ====================
@@ -151,6 +151,10 @@ class FirestationServiceUT {
 
     @Test
     void deleteMapping_withAddressOnly_deletesSuccessfully() {
+        // Arrange
+        when(firestationRepository.existsByAddress("123 Main St")).thenReturn(true);
+        when(firestationRepository.deleteFirestationByAddress("123 Main St")).thenReturn(true);
+
         // Act
         firestationService.deleteMapping("123 Main St", null);
 
@@ -161,6 +165,10 @@ class FirestationServiceUT {
 
     @Test
     void deleteMapping_withStationOnly_deletesSuccessfully() {
+        // Arrange
+        when(firestationRepository.existsByStation(1)).thenReturn(true);
+        when(firestationRepository.deleteFirestationByStation(1)).thenReturn(true);
+
         // Act
         firestationService.deleteMapping(null, 1);
 

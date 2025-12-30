@@ -202,10 +202,10 @@ class MedicalRecordRepositoryUT {
         assertEquals(Arrays.asList("gluten"), found.get().getAllergies());
     }
 
-    // ==================== Tests update ====================
+    // ==================== Tests updateFields ====================
 
     @Test
-    void update_withExistingRecord_updatesAndReturnsRecord() {
+    void updateFields_withExistingRecord_updatesRecord() {
         // Arrange
         MedicalRecord updatedRecord = new MedicalRecord();
         updatedRecord.setBirthdate("04/04/1983");
@@ -213,28 +213,30 @@ class MedicalRecordRepositoryUT {
         updatedRecord.setAllergies(Arrays.asList("dust"));
 
         // Act
-        Optional<MedicalRecord> result = medicalRecordRepository.update("John", "Doe", updatedRecord);
+        medicalRecordRepository.updateFields(record1, updatedRecord);
 
         // Assert
-        assertTrue(result.isPresent());
-        assertEquals("John", result.get().getFirstName());
-        assertEquals("Doe", result.get().getLastName());
-        assertEquals("04/04/1983", result.get().getBirthdate());
-        assertEquals(Arrays.asList("updated_med:300mg"), result.get().getMedications());
-        assertEquals(Arrays.asList("dust"), result.get().getAllergies());
+        assertEquals("John", record1.getFirstName());
+        assertEquals("Doe", record1.getLastName());
+        assertEquals("04/04/1983", record1.getBirthdate());
+        assertEquals(Arrays.asList("updated_med:300mg"), record1.getMedications());
+        assertEquals(Arrays.asList("dust"), record1.getAllergies());
     }
 
     @Test
-    void update_withNonExistingRecord_returnsEmpty() {
+    void updateFields_withPartialUpdate_updatesOnlyNonNullFields() {
         // Arrange
-        MedicalRecord updatedRecord = new MedicalRecord();
-        updatedRecord.setBirthdate("01/01/2000");
+        MedicalRecord partialUpdate = new MedicalRecord();
+        partialUpdate.setBirthdate("05/05/1985");
+        // medications et allergies sont null, ne doivent pas être mis à jour
 
         // Act
-        Optional<MedicalRecord> result = medicalRecordRepository.update("Unknown", "Person", updatedRecord);
+        medicalRecordRepository.updateFields(record1, partialUpdate);
 
         // Assert
-        assertFalse(result.isPresent());
+        assertEquals("05/05/1985", record1.getBirthdate());
+        assertEquals(Arrays.asList("medication1:100mg", "medication2:50mg"), record1.getMedications());
+        assertEquals(Arrays.asList("peanut", "shellfish"), record1.getAllergies());
     }
 
     // ==================== Tests delete ====================
