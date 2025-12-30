@@ -1,11 +1,14 @@
 package com.openclassrooms.safetynetalerts.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,10 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.openclassrooms.safetynetalerts.dto.firestation.FirestationCoverageResponseDTO;
 import com.openclassrooms.safetynetalerts.dto.firestation.FirestationDTO;
+import com.openclassrooms.safetynetalerts.dto.firestation.FirestationResidentDTO;
 import com.openclassrooms.safetynetalerts.mapper.FirestationMapper;
 import com.openclassrooms.safetynetalerts.model.Firestation;
+import com.openclassrooms.safetynetalerts.model.Person;
 import com.openclassrooms.safetynetalerts.service.FirestationService;
+import com.openclassrooms.safetynetalerts.utils.Utils;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -38,14 +45,78 @@ import jakarta.validation.constraints.NotBlank;
 @RequestMapping("/firestation")
 @Validated
 public class FirestationController {
+
+    private final Utils utils;
     private final Logger logger = LoggerFactory.getLogger(FirestationController.class);
 
     public final FirestationService firestationService;
     public final FirestationMapper firestationMapper;
 
-    public FirestationController(FirestationService firestationService, FirestationMapper firestationMapper) {
+    public FirestationController(FirestationService firestationService, FirestationMapper firestationMapper,
+            Utils utils) {
         this.firestationService = firestationService;
         this.firestationMapper = firestationMapper;
+        this.utils = utils;
+    }
+
+    /**
+     * Récupère la liste des personnes couvertes par une station de pompiers donnée.
+     * <p>
+     * Endpoint : GET /firestation?stationNumber={stationNumber}
+     * <p>
+     * Retourne la liste des résidents couverts par la station spécifiée, ainsi
+     * qu'un
+     * décompte du nombre d'adultes et d'enfants. Cette information est utilisée
+     * pour
+     * les opérations d'urgence nécessitant une évaluation rapide des populations à
+     * risque.
+     *
+     * @param stationNumber le numéro de la station de pompiers dont on veut
+     *                      récupérer les personnes couvertes
+     * @return ResponseEntity contenant un {@link FirestationCoverageResponseDTO}
+     *         avec la liste des résidents,
+     *         le nombre d'adultes et le nombre d'enfants (HTTP 200)
+     */
+    @GetMapping
+    public ResponseEntity<FirestationCoverageResponseDTO> getPersonsByStation(
+            @RequestParam("stationNumber") int stationNumber) {
+
+        logger.info("[CALL] GET /firestation?stationNumber={}", stationNumber);
+
+        // 1. Appeler le service pour récupérer les personnes
+        List<Person> persons = firestationService.getPersonsCoveredByStation(stationNumber);
+
+        // 2. Calculer les comptages adultes/enfants
+        int adultCount = 0;
+        int childCount = 0;
+
+        for (Person person : persons) {
+            if (utils.isChild(person)) {
+                childCount++;
+            } else {
+                adultCount++;
+            }
+        }
+
+        // 3. Mapper les entités vers DTOs
+        List<FirestationResidentDTO> residents = persons.stream()
+                .map(p -> new FirestationResidentDTO(
+                        p.getFirstName(),
+                        p.getLastName(),
+                        p.getAddress(),
+                        p.getPhone()))
+                .toList();
+
+        // 4. Construire le DTO de réponse
+        FirestationCoverageResponseDTO response = new FirestationCoverageResponseDTO(
+                residents,
+                adultCount,
+                childCount);
+
+        logger.info("[RESPONSE] GET /firestation -> {} résidents ({} adultes, {} enfants)",
+                residents.size(), adultCount, childCount);
+
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -105,10 +176,10 @@ public class FirestationController {
         Firestation firestation = firestationMapper.toEntity(firestationDTO);
 
         // Appeler le service
-        firestationService.updateMapping(address, firestation);
+        Firestation updatedFirestation = firestationService.updateMapping(address, firestation);
 
         // Mapper Entité vers DTO pour la réponse
-        FirestationDTO response = firestationMapper.toDto(firestation);
+        FirestationDTO response = firestationMapper.toDto(updatedFirestation);
 
         logger.info("[RESPONSE] PUT /firestation -> Mapping updated successfully");
         return ResponseEntity.ok(response);

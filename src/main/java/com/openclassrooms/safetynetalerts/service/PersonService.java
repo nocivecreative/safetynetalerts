@@ -128,13 +128,13 @@ public class PersonService {
      *               servent d'identifiant)
      * @throws IllegalArgumentException si la personne n'existe pas dans le système
      */
-    public Person updatePerson(String firstName, String lastName, Person person) {
+    public Person updatePerson(String firstName, String lastName, Person updated) {
         logger.info("[SERVICE] Updating person informations for: {} {}", firstName, lastName);
         Person existing = personRepository
                 .findByFirstNameAndLastName(firstName, lastName)
                 .orElseThrow(() -> new IllegalArgumentException("Person not found: " + firstName + " " + lastName));
 
-        personRepository.updatePerson(existing, person);
+        personRepository.updatePerson(existing, updated);
 
         return existing;
     }
