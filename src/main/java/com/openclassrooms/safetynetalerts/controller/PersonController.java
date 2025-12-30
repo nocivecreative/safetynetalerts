@@ -281,14 +281,12 @@ public class PersonController {
 
         // Mapper DTO → Entity
         Person person = personMapper.toEntity(personDTO);
-        person.setFirstName(firstName);
-        person.setLastName(lastName);
 
         // Appeler le service
-        personService.updatePerson(person);
+        Person updatedPerson = personService.updatePerson(firstName, lastName, person);
 
         // Mapper Entity → DTO pour la réponse
-        PersonDTO response = personMapper.toDto(person);
+        PersonDTO response = personMapper.toDto(updatedPerson);
 
         logger.info("[RESPONSE] PUT /person -> Person successfully updated");
         return ResponseEntity.ok(response);

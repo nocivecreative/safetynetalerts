@@ -2,7 +2,6 @@ package com.openclassrooms.safetynetalerts.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.openclassrooms.safetynetalerts.dto.firestation.FirestationDTO;
+import com.openclassrooms.safetynetalerts.mapper.FirestationMapper;
 import com.openclassrooms.safetynetalerts.model.Firestation;
 import com.openclassrooms.safetynetalerts.service.FirestationService;
 
@@ -40,8 +40,13 @@ import jakarta.validation.constraints.NotBlank;
 public class FirestationController {
     private final Logger logger = LoggerFactory.getLogger(FirestationController.class);
 
-    @Autowired
-    FirestationService firestationService;
+    public final FirestationService firestationService;
+    public final FirestationMapper firestationMapper;
+
+    public FirestationController(FirestationService firestationService, FirestationMapper firestationMapper) {
+        this.firestationService = firestationService;
+        this.firestationMapper = firestationMapper;
+    }
 
     /**
      * Crée un nouveau mapping entre une adresse et un numéro de station de
@@ -63,15 +68,13 @@ public class FirestationController {
                 firestationDTO.getAddress(), firestationDTO.getStation());
 
         // Mapper DTO vers Entité
-        Firestation firestation = new Firestation(
-                firestationDTO.getAddress(),
-                firestationDTO.getStation());
+        Firestation firestation = firestationMapper.toEntity(firestationDTO);
 
         // Appeler le service
         firestationService.addMapping(firestation);
 
         // Mapper DTO pour la réponse
-        FirestationDTO response = mapEntityToDto(firestation);
+        FirestationDTO response = firestationMapper.toDto(firestation);
 
         logger.info("[RESPONSE] POST /firestation -> Mapping created successfully");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -99,13 +102,13 @@ public class FirestationController {
                 address, firestationDTO.getStation());
 
         // Mapper DTO vers Entité
-        Firestation firestation = new Firestation(address, firestationDTO.getStation());
+        Firestation firestation = firestationMapper.toEntity(firestationDTO);
 
         // Appeler le service
         firestationService.updateMapping(address, firestation);
 
         // Mapper Entité vers DTO pour la réponse
-        FirestationDTO response = mapEntityToDto(firestation);
+        FirestationDTO response = firestationMapper.toDto(firestation);
 
         logger.info("[RESPONSE] PUT /firestation -> Mapping updated successfully");
         return ResponseEntity.ok(response);
@@ -144,11 +147,4 @@ public class FirestationController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- Méthodes privées de mapping ---
-
-    private FirestationDTO mapEntityToDto(Firestation fs) {
-        return new FirestationDTO(
-                fs.getAddress(),
-                fs.getStation());
-    }
 }
